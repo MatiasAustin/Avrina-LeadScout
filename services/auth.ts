@@ -229,6 +229,7 @@ export const saveConfig = async (config: AppConfig) => {
   }
 
   // Map to snake_case for DB
+  // REMOVED: updated_at (This caused the error because the column likely doesn't exist in your DB)
   const dbConfig = {
     donation_link: config.donationLink,
     announcement_text: config.announcementText,
@@ -238,8 +239,7 @@ export const saveConfig = async (config: AppConfig) => {
     dedication_message: config.dedicationMessage,
     signature: config.signature,
     app_name: config.appName,
-    app_logo: config.appLogo,
-    updated_at: new Date().toISOString()
+    app_logo: config.appLogo
   };
 
   // 1. Check if a row exists
