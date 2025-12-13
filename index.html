@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Avrina LeadScout</title>
+    
+    <!-- POLYFILL: Mencegah error "process is not defined" di browser/Vercel -->
+    <script>
+      window.process = { env: {} };
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -122,5 +128,7 @@
 </head>
   <body>
     <div id="root"></div>
+    <!-- CRITICAL FIX: Load the entry point file -->
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
