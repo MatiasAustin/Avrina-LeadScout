@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { User } from '../types';
 import { updateUserProfile } from '../services/profile';
+import { deleteAccount } from '../services/auth';
 import { parseResumeFromFile } from '../services/ai';
-import { Save, Loader2, Upload, FileText, UserCircle, Briefcase, Target, CheckCircle } from 'lucide-react';
+import { Save, Loader2, Upload, FileText, UserCircle, Briefcase, Target, CheckCircle, Trash2, AlertTriangle } from 'lucide-react';
 
 interface Props {
   user: User;
@@ -16,6 +17,7 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate }) => {
   const [name, setName] = useState(user.name || '');
   
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isParsingCV, setIsParsingCV] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const cvInputRef = useRef<HTMLInputElement>(null);
@@ -59,8 +61,25 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate }) => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    const confirmMessage = "Are you absolutely sure?\n\nThis will DELETE ALL your leads, settings, and profile data permanently.\nThis action cannot be undone.";
+    if (window.confirm(confirmMessage)) {
+       // Second confirmation to be safe
+       if (window.confirm("Last chance: Delete account permanently?")) {
+         setIsDeleting(true);
+         try {
+           await deleteAccount(user.id);
+           window.location.reload(); // Force refresh to redirect to auth
+         } catch (e: any) {
+           alert("Failed to delete account: " + e.message);
+           setIsDeleting(false);
+         }
+       }
+    }
+  };
+
   return (
-    <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
+    <div className="max-w-2xl mx-auto space-y-8 animate-fade-in">
       <div className="bg-slate-50 p-6 rounded-xl shadow-sm border border-slate-200">
         <h2 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
           <UserCircle className="w-6 h-6 text-slate-700" />
@@ -168,8 +187,30 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate }) => {
               Save Changes
             </button>
           </div>
-
         </form>
+      </div>
+
+      {/* DANGER ZONE */}
+      <div className="bg-red-50 p-6 rounded-xl border border-red-100">
+        <h3 className="text-red-800 font-bold flex items-center gap-2 mb-2">
+          <AlertTriangle className="w-5 h-5" />
+          Danger Zone
+        </h3>
+        <p className="text-sm text-red-700 mb-6 opacity-80">
+          Once you delete your account, there is no going back. All your leads, settings, and data will be permanently removed.
+        </p>
+        
+        <div className="flex justify-end">
+          <button 
+            type="button"
+            onClick={handleDeleteAccount}
+            disabled={isDeleting}
+            className="bg-white border border-red-200 text-red-600 hover:bg-red-600 hover:text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
+          >
+            {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+            {isDeleting ? "Deleting..." : "Delete Account"}
+          </button>
+        </div>
       </div>
     </div>
   );

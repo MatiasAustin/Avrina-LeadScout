@@ -113,6 +113,46 @@ export const resendConfirmation = async (email: string) => {
   if (error) throw error;
 };
 
+// --- ACCOUNT DELETION ---
+
+export const deleteAccount = async (userId: string) => {
+  // 1. Guest/Local cleanup
+  if (!isSupabaseConfigured || userId === 'guest' || userId === 'local-admin') {
+    sessionStorage.clear();
+    localStorage.removeItem('ls_job');
+    localStorage.removeItem('ls_niche');
+    localStorage.removeItem('ls_bio');
+    localStorage.removeItem('leadscout_leads_guest');
+    return;
+  }
+
+  try {
+    // 2. Supabase Cleanup
+    // Note: In a production app, it's better to use an RPC function or Cascade Delete in DB.
+    // Here we do a manual cleanup for safety.
+
+    // A. Delete Leads
+    await supabase.from('leads').delete().eq('user_id', userId);
+    
+    // B. Delete Testimonials
+    await supabase.from('testimonials').delete().eq('user_id', userId);
+
+    // C. Delete Profile (If policies allow)
+    const { error: profileError } = await supabase.from('profiles').delete().eq('id', userId);
+    
+    // Note: We cannot delete from auth.users via client SDK directly without Admin API.
+    // Deleting the profile is usually enough to "deactivate" the user logic in this app structure.
+    if (profileError) throw profileError;
+
+    // D. Sign Out
+    await supabase.auth.signOut();
+    
+  } catch (error: any) {
+    console.error("Delete Account Error:", error);
+    throw new Error("Failed to delete account data: " + error.message);
+  }
+};
+
 const createLocalAdmin = (): User => {
   sessionStorage.setItem('avrina_local_admin', 'true');
   return {
