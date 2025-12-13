@@ -75,7 +75,7 @@ export const register = async (name: string, email: string, password: string): P
 
 export const login = async (email: string, password: string): Promise<User> => {
   // 1. LOCAL ADMIN BACKDOOR (For testing without DB)
-  if (email === 'admin@avrina.com' && password === 'admin') {
+  if (email === 'admin@avrina.com' && password === 'Aois83bi%^6as') {
      const adminUser: User = {
        id: 'local-admin',
        email: 'admin@avrina.com',
@@ -91,7 +91,7 @@ export const login = async (email: string, password: string): Promise<User> => {
   }
 
   if (!isSupabaseConfigured) {
-    throw new Error("Backend not connected. Use 'admin@avrina.com' / 'admin' to test Admin Panel locally.");
+    throw new Error("Backend not connected. Use 'admin@avrina.com' to test Admin Panel locally.");
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({
