@@ -1,0 +1,9 @@
+{
+  "name": "Avrina LeadScout",
+  "description": "An intelligent lead generation and CRM tool for freelancers and agencies. Generates search strategies, analyzes potential clients, and drafts outreach messages using Gemini AI.",
+  "requestFramePermissions": [
+    "display-capture",
+    "microphone",
+    "camera"
+  ]
+}
