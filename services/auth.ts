@@ -4,7 +4,6 @@ import { User, UserRole, AppConfig } from "../types";
 // --- HELPERS ---
 
 const mapSupabaseUser = async (sbUser: any): Promise<User> => {
-  // If not configured, return basic info from metadata (fallback)
   if (!isSupabaseConfigured) {
     return {
       id: sbUser.id,
@@ -18,7 +17,6 @@ const mapSupabaseUser = async (sbUser: any): Promise<User> => {
     };
   }
 
-  // Fetch profile to get Role, Name, and Professional Details from DB
   try {
     const { data: profile } = await supabase
       .from('profiles')
@@ -32,13 +30,11 @@ const mapSupabaseUser = async (sbUser: any): Promise<User> => {
       name: profile?.full_name || sbUser.user_metadata?.full_name || 'User',
       role: (profile?.role as UserRole) || 'user',
       createdAt: sbUser.created_at,
-      // Map new fields (handling snake_case from DB)
       jobTitle: profile?.job_title || '',
       niche: profile?.target_niche || '',
       bio: profile?.bio || ''
     };
   } catch (e) {
-    // Fallback if profile fetch fails
     return {
       id: sbUser.id,
       email: sbUser.email,
@@ -68,6 +64,13 @@ export const register = async (name: string, email: string, password: string): P
   });
 
   if (error) throw error;
+  
+  // If email confirmation is on, data.user is returned but session is null usually.
+  // We throw a specific error to UI to tell them to check email.
+  if (data.user && !data.session) {
+    throw new Error("Confirmation email sent. Please check your inbox.");
+  }
+
   if (!data.user) throw new Error("Registration failed");
 
   return mapSupabaseUser(data.user);
@@ -75,7 +78,6 @@ export const register = async (name: string, email: string, password: string): P
 
 export const login = async (email: string, password: string): Promise<User> => {
   if (!isSupabaseConfigured) {
-    // If offline, check backdoor immediately
     if (email === 'admin@avrina.com' && password === 'Aois83bi%^6as') {
        return createLocalAdmin();
     }
@@ -83,28 +85,32 @@ export const login = async (email: string, password: string): Promise<User> => {
   }
 
   // 1. ATTEMPT REAL SUPABASE LOGIN FIRST
-  // This ensures we get a valid session token for DB writes (RLS)
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password
   });
 
   if (!error && data.user) {
-    // Login success!
     return mapSupabaseUser(data.user);
   }
 
   // 2. FALLBACK: LOCAL ADMIN BACKDOOR
-  // Only use this if Supabase login failed (e.g. user not created in DB yet)
-  // Warning: This user won't be able to write to DB if RLS is enabled.
   if (email === 'admin@avrina.com' && password === 'Aois83bi%^6as') {
-     console.warn("Logged in via Backdoor. Database writes might fail due to lack of permissions.");
+     console.warn("Logged in via Backdoor due to Supabase auth failure.");
      return createLocalAdmin();
   }
 
-  // If both failed, throw the original Supabase error or generic error
   if (error) throw error;
   throw new Error("Login failed");
+};
+
+export const resendConfirmation = async (email: string) => {
+  if (!isSupabaseConfigured) return;
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email: email,
+  });
+  if (error) throw error;
 };
 
 const createLocalAdmin = (): User => {
@@ -122,7 +128,6 @@ const createLocalAdmin = (): User => {
 };
 
 export const loginAsGuest = (): User => {
-  // Try to load guest profile from localstorage
   const savedJob = localStorage.getItem('ls_job') || '';
   const savedNiche = localStorage.getItem('ls_niche') || '';
   const savedBio = localStorage.getItem('ls_bio') || '';
@@ -137,7 +142,6 @@ export const loginAsGuest = (): User => {
     niche: savedNiche,
     bio: savedBio
   };
-  // Store guest flag in session storage so we know to use local logic
   sessionStorage.setItem('avrina_guest_active', 'true');
   return guest;
 };
@@ -151,21 +155,15 @@ export const logout = async () => {
 };
 
 export const getCurrentUser = async (): Promise<User | null> => {
-  // Check Guest First
   if (sessionStorage.getItem('avrina_guest_active')) {
     return loginAsGuest();
   }
-
-  // Check Local Admin
   if (sessionStorage.getItem('avrina_local_admin')) {
     return createLocalAdmin();
   }
-
   if (!isSupabaseConfigured) {
     return null;
   }
-
-  // Check Supabase Session
   try {
     const { data } = await supabase.auth.getSession();
     if (data.session?.user) {
@@ -192,15 +190,16 @@ const DEFAULT_CONFIG: AppConfig = {
 };
 
 export const getConfig = async (): Promise<AppConfig> => {
+  // 1. Try Local Storage First (Fastest & Fallback)
+  const local = localStorage.getItem('avrina_local_config');
+  let localConfig = local ? JSON.parse(local) : null;
+
   if (!isSupabaseConfigured) {
-    // Fallback for guest or unconfigured state
-    const local = localStorage.getItem('avrina_local_config');
-    if (local) return { ...DEFAULT_CONFIG, ...JSON.parse(local) };
-    return DEFAULT_CONFIG;
+    return { ...DEFAULT_CONFIG, ...localConfig };
   }
 
   try {
-    // Get the first row
+    // 2. Try Supabase
     const { data, error } = await supabase
       .from('app_config')
       .select('*')
@@ -209,10 +208,12 @@ export const getConfig = async (): Promise<AppConfig> => {
       .single();
 
     if (error || !data) {
-      // Return default but do NOT save locally to avoid confusion
+      // If DB fails or is empty, use LocalStorage if available
+      if (localConfig) return { ...DEFAULT_CONFIG, ...localConfig };
       return DEFAULT_CONFIG;
     }
     
+    // DB Success
     return { 
       donationLink: data.donation_link || '',
       announcementText: data.announcement_text || '',
@@ -225,17 +226,18 @@ export const getConfig = async (): Promise<AppConfig> => {
       appLogo: data.app_logo || ''
     };
   } catch (e) {
+    // Fallback to local on crash
+    if (localConfig) return { ...DEFAULT_CONFIG, ...localConfig };
     return DEFAULT_CONFIG;
   }
 };
 
 export const saveConfig = async (config: AppConfig) => {
-  if (!isSupabaseConfigured) {
-     localStorage.setItem('avrina_local_config', JSON.stringify(config));
-     return;
-  }
+  // 1. ALWAYS Save to LocalStorage first (Backup/Optimistic)
+  localStorage.setItem('avrina_local_config', JSON.stringify(config));
 
-  // Map to snake_case for DB
+  if (!isSupabaseConfigured) return;
+
   const dbConfig = {
     donation_link: config.donationLink,
     announcement_text: config.announcementText,
@@ -248,41 +250,37 @@ export const saveConfig = async (config: AppConfig) => {
     app_logo: config.appLogo
   };
 
-  // 1. Check if a row exists
-  const { data: existingData, error: fetchError } = await supabase
-    .from('app_config')
-    .select('id')
-    .limit(1);
-    
-  if (fetchError) {
-      // If error (e.g. permission denied because user is Backdoor Admin), throw it
-      throw new Error(`DB Error: ${fetchError.message} (Are you logged in with a real Supabase admin account?)`);
-  }
-
-  if (existingData && existingData.length > 0) {
-    // UPDATE existing
-    const { error } = await supabase
+  try {
+    // 2. Try Supabase Write
+    const { data: existingData, error: fetchError } = await supabase
       .from('app_config')
-      .update(dbConfig)
-      .eq('id', existingData[0].id);
-    
-    if (error) throw error;
-  } else {
-    // INSERT new if table is empty
-    const { error } = await supabase
-      .from('app_config')
-      .insert(dbConfig);
+      .select('id')
+      .limit(1);
       
-    if (error) throw error;
+    if (fetchError) throw fetchError;
+
+    if (existingData && existingData.length > 0) {
+      const { error } = await supabase
+        .from('app_config')
+        .update(dbConfig)
+        .eq('id', existingData[0].id);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase
+        .from('app_config')
+        .insert(dbConfig);
+      if (error) throw error;
+    }
+  } catch (err: any) {
+    console.error("DB Save Failed:", err);
+    throw new Error(`Database write failed (${err.message || 'Check RLS policies'}). Data saved LOCALLY only.`);
   }
 };
 
 // --- ADMIN FUNCTIONS ---
 
 export const getAllUsers = async (): Promise<User[]> => {
-  if (!isSupabaseConfigured) {
-    return [];
-  }
+  if (!isSupabaseConfigured) return [];
 
   const { data, error } = await supabase
     .from('profiles')

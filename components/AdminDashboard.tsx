@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAllUsers, getConfig, saveConfig, sendPasswordReset } from '../services/auth';
 import { User, AppConfig } from '../types';
-import { Save, ShieldAlert, Users, DollarSign, KeyRound, Info, Loader2, ExternalLink, Coffee, Heart, Zap, Megaphone, Share2, Check, PenTool, Type, Image } from 'lucide-react';
+import { Save, ShieldAlert, Users, DollarSign, KeyRound, Info, Loader2, ExternalLink, Coffee, Heart, Zap, Megaphone, Share2, Check, PenTool, Type, Image, AlertTriangle } from 'lucide-react';
 
 interface Props {
   onConfigUpdate?: (config: AppConfig) => void;
@@ -21,6 +21,7 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
     appLogo: ''
   });
   const [configSaved, setConfigSaved] = useState(false);
+  const [localSaveWarning, setLocalSaveWarning] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -30,15 +31,17 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [usersData, configData] = await Promise.all([
+      // Use Promise.allSettled to ensure dashboard loads even if one request fails
+      const [usersResult, configResult] = await Promise.allSettled([
         getAllUsers(),
         getConfig()
       ]);
-      setUsers(usersData);
-      setConfig(configData);
+
+      if (usersResult.status === 'fulfilled') setUsers(usersResult.value);
+      if (configResult.status === 'fulfilled') setConfig(configResult.value);
+      
     } catch (e) {
       console.error(e);
-      alert("Failed to load admin data. Ensure you have Admin role in DB.");
     } finally {
       setLoading(false);
     }
@@ -57,16 +60,28 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
 
   const handleSaveConfig = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLocalSaveWarning(null);
+    setConfigSaved(false);
+
     try {
       await saveConfig(config);
-      // Update parent state to reflect changes immediately in sidebar
-      if (onConfigUpdate) {
-        onConfigUpdate(config);
-      }
+      
+      // Success (Cloud)
       setConfigSaved(true);
       setTimeout(() => setConfigSaved(false), 2000);
+      
+      if (onConfigUpdate) onConfigUpdate(config);
+
     } catch (e: any) {
-      alert("Failed to save config: " + e.message);
+      // If error message mentions "LOCALLY", it means local save worked but DB failed
+      if (e.message && e.message.includes("LOCALLY")) {
+        setLocalSaveWarning(e.message);
+        // Still treat as 'saved' for UI purposes
+        setConfigSaved(true);
+        if (onConfigUpdate) onConfigUpdate(config);
+      } else {
+        alert("Failed to save config: " + e.message);
+      }
     }
   };
 
@@ -103,6 +118,18 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
         <div className="mb-10 pb-10 border-b border-slate-100">
           <form onSubmit={handleSaveConfig} className="space-y-8">
             
+            {/* Warning Banner if DB Save Fails */}
+            {localSaveWarning && (
+              <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl flex items-start gap-3 text-orange-800">
+                <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold">Configuration Saved Locally Only</p>
+                  <p className="text-xs mt-1 opacity-90">{localSaveWarning}</p>
+                  <p className="text-xs mt-2 italic">Check your Supabase table 'app_config' and RLS policies.</p>
+                </div>
+              </div>
+            )}
+
             {/* 0. BRANDING (New) */}
             <div>
               <div className="flex items-center gap-2 mb-3">

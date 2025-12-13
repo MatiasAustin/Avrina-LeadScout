@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { login, register, loginAsGuest } from '../services/auth';
+import { login, register, loginAsGuest, resendConfirmation } from '../services/auth';
 import { User, AppConfig } from '../types';
-import { Sparkles, ArrowRight, User as UserIcon, Lock, Loader2, AlertCircle } from 'lucide-react';
+import { Sparkles, ArrowRight, User as UserIcon, Lock, Loader2, AlertCircle, Mail, ExternalLink } from 'lucide-react';
 
 interface Props {
   onAuthSuccess: (user: User) => void;
@@ -15,6 +15,8 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config }) => {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showResend, setShowResend] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   // Default branding if config not yet loaded
   const appName = config?.appName || "Avrina LeadScout";
@@ -23,6 +25,7 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setShowResend(false);
     setLoading(true);
     
     try {
@@ -36,9 +39,34 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config }) => {
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Authentication failed. Check your credentials.");
+      let msg = err.message || "Authentication failed.";
+      
+      // Handle specific "Email not confirmed" error
+      if (msg.toLowerCase().includes("email not confirmed")) {
+         setShowResend(true);
+         msg = "Email address not confirmed. Please check your inbox.";
+      } else if (msg.includes("Confirmation email sent")) {
+         // This comes from our custom logic in register()
+         setIsLogin(true); // Switch to login screen
+         msg = "Account created! Please check your email to confirm before logging in.";
+      }
+
+      setError(msg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setResendLoading(true);
+    try {
+      await resendConfirmation(email);
+      alert("Confirmation email sent! Please check your inbox.");
+      setShowResend(false);
+    } catch (e: any) {
+      alert("Failed to resend: " + e.message);
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -69,9 +97,32 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config }) => {
         </h2>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg flex items-center gap-2 text-red-700 text-sm">
-            <AlertCircle className="w-4 h-4" />
-            {error}
+          <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-lg text-sm">
+            <div className="flex items-start gap-2 text-red-700 font-medium">
+               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+               <p>{error}</p>
+            </div>
+            
+            {showResend && (
+              <div className="mt-3 pl-6 space-y-3">
+                 <button 
+                   onClick={handleResend}
+                   disabled={resendLoading}
+                   className="text-xs bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1.5 rounded-md transition flex items-center gap-2 font-semibold"
+                 >
+                   {resendLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
+                   Resend Confirmation Email
+                 </button>
+
+                 <div className="bg-white/50 p-2 rounded border border-red-100">
+                    <p className="text-[10px] text-red-600 leading-tight">
+                      <span className="font-bold">Dev Tip:</span> In Supabase Dashboard, go to 
+                      <span className="font-mono mx-1">Authentication &gt; Providers &gt; Email</span> 
+                      and disable "Confirm email" to login without verification.
+                    </p>
+                 </div>
+              </div>
+            )}
           </div>
         )}
 
