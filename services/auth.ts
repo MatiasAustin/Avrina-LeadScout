@@ -74,35 +74,51 @@ export const register = async (name: string, email: string, password: string): P
 };
 
 export const login = async (email: string, password: string): Promise<User> => {
-  // 1. LOCAL ADMIN BACKDOOR (For testing without DB)
-  if (email === 'admin@avrina.com' && password === 'Aois83bi%^6as') {
-     const adminUser: User = {
-       id: 'local-admin',
-       email: 'admin@avrina.com',
-       name: 'Local Admin',
-       role: 'admin',
-       createdAt: new Date().toISOString(),
-       jobTitle: 'Administrator',
-       niche: 'SaaS',
-       bio: 'System Admin'
-     };
-     sessionStorage.setItem('avrina_local_admin', 'true');
-     return adminUser;
-  }
-
   if (!isSupabaseConfigured) {
+    // If offline, check backdoor immediately
+    if (email === 'admin@avrina.com' && password === 'Aois83bi%^6as') {
+       return createLocalAdmin();
+    }
     throw new Error("Backend not connected. Use 'admin@avrina.com' to test Admin Panel locally.");
   }
 
+  // 1. ATTEMPT REAL SUPABASE LOGIN FIRST
+  // This ensures we get a valid session token for DB writes (RLS)
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password
   });
 
-  if (error) throw error;
-  if (!data.user) throw new Error("Login failed");
+  if (!error && data.user) {
+    // Login success!
+    return mapSupabaseUser(data.user);
+  }
 
-  return mapSupabaseUser(data.user);
+  // 2. FALLBACK: LOCAL ADMIN BACKDOOR
+  // Only use this if Supabase login failed (e.g. user not created in DB yet)
+  // Warning: This user won't be able to write to DB if RLS is enabled.
+  if (email === 'admin@avrina.com' && password === 'Aois83bi%^6as') {
+     console.warn("Logged in via Backdoor. Database writes might fail due to lack of permissions.");
+     return createLocalAdmin();
+  }
+
+  // If both failed, throw the original Supabase error or generic error
+  if (error) throw error;
+  throw new Error("Login failed");
+};
+
+const createLocalAdmin = (): User => {
+  sessionStorage.setItem('avrina_local_admin', 'true');
+  return {
+    id: 'local-admin',
+    email: 'admin@avrina.com',
+    name: 'Local Admin',
+    role: 'admin',
+    createdAt: new Date().toISOString(),
+    jobTitle: 'Administrator',
+    niche: 'SaaS',
+    bio: 'System Admin'
+  };
 };
 
 export const loginAsGuest = (): User => {
@@ -142,16 +158,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
 
   // Check Local Admin
   if (sessionStorage.getItem('avrina_local_admin')) {
-    return {
-       id: 'local-admin',
-       email: 'admin@avrina.com',
-       name: 'Local Admin',
-       role: 'admin',
-       createdAt: new Date().toISOString(),
-       jobTitle: 'Administrator',
-       niche: 'SaaS',
-       bio: 'System Admin'
-     };
+    return createLocalAdmin();
   }
 
   if (!isSupabaseConfigured) {
@@ -229,7 +236,6 @@ export const saveConfig = async (config: AppConfig) => {
   }
 
   // Map to snake_case for DB
-  // REMOVED: updated_at (This caused the error because the column likely doesn't exist in your DB)
   const dbConfig = {
     donation_link: config.donationLink,
     announcement_text: config.announcementText,
@@ -243,10 +249,15 @@ export const saveConfig = async (config: AppConfig) => {
   };
 
   // 1. Check if a row exists
-  const { data: existingData } = await supabase
+  const { data: existingData, error: fetchError } = await supabase
     .from('app_config')
     .select('id')
     .limit(1);
+    
+  if (fetchError) {
+      // If error (e.g. permission denied because user is Backdoor Admin), throw it
+      throw new Error(`DB Error: ${fetchError.message} (Are you logged in with a real Supabase admin account?)`);
+  }
 
   if (existingData && existingData.length > 0) {
     // UPDATE existing
@@ -270,7 +281,6 @@ export const saveConfig = async (config: AppConfig) => {
 
 export const getAllUsers = async (): Promise<User[]> => {
   if (!isSupabaseConfigured) {
-    // Return empty if not connected, NO MORE DUMMY DATA
     return [];
   }
 
