@@ -359,9 +359,12 @@ const App: React.FC = () => {
              <NavItem id="dashboard" label="Stats & Analytics" icon={LayoutDashboard} />
              <NavItem id="community" label="Community" icon={MessageSquare} />
 
-            <div className="my-2 border-t border-slate-100 pt-2">
-              <NavItem id="profile" label="My Profile" icon={UserCircle} />
-            </div>
+            {/* ONLY SHOW PROFILE FOR REGISTERED USERS */}
+            {user.role !== 'guest' && (
+              <div className="my-2 border-t border-slate-100 pt-2">
+                <NavItem id="profile" label="My Profile" icon={UserCircle} />
+              </div>
+            )}
 
             {/* Admin Tab */}
             {user.role === 'admin' && (
@@ -467,7 +470,8 @@ const App: React.FC = () => {
               </div>
             )}
 
-            {activeTab === 'profile' && user && (
+            {/* ONLY SHOW PROFILE FOR REGISTERED USERS */}
+            {activeTab === 'profile' && user && user.role !== 'guest' && (
               <ProfileSettings user={user} onProfileUpdate={handleProfileUpdate} />
             )}
 
