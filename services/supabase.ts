@@ -1,12 +1,32 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Safe fallbacks to prevent "supabaseUrl is required" crash during initial setup
-// We use a dummy URL if process.env values are missing.
-const supabaseUrl = process.env.SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || 'placeholder';
+// Helper to safely access environment variables in various environments (Vite, Next.js, CRA)
+const getEnv = (key: string) => {
+  // 1. Check for Vite's import.meta.env (Standard for Vercel/Vite)
+  // @ts-ignore
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    // @ts-ignore
+    return import.meta.env[`VITE_${key}`] || import.meta.env[key];
+  }
+  
+  // 2. Check for standard process.env (Node/CRA)
+  try {
+    if (typeof process !== 'undefined' && process.env) {
+      return process.env[key];
+    }
+  } catch (e) {
+    // Ignore ReferenceError if process is not defined
+  }
+
+  return '';
+};
+
+// Safe accessors
+const supabaseUrl = getEnv('SUPABASE_URL') || 'https://placeholder.supabase.co';
+const supabaseAnonKey = getEnv('SUPABASE_ANON_KEY') || 'placeholder';
 
 // Export a flag to check if we are truly connected
-export const isSupabaseConfigured = !!(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY);
+export const isSupabaseConfigured = !!(getEnv('SUPABASE_URL') && getEnv('SUPABASE_ANON_KEY'));
 
 if (!isSupabaseConfigured) {
   console.warn("Supabase credentials missing. App operating in limited mode (Guest only).");

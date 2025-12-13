@@ -2,11 +2,32 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import mammoth from "mammoth";
 import { Platform, SearchStrategy, LeadAnalysis, OutreachDraft, UserProfile, PositioningSuggestion, OutreachTone, OutreachLength } from "../types";
 
+// Helper to safely access environment variables
+const getEnv = (key: string) => {
+  // 1. Check for Vite's import.meta.env
+  // @ts-ignore
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    // @ts-ignore
+    return import.meta.env[`VITE_${key}`] || import.meta.env[key];
+  }
+  
+  // 2. Check for standard process.env
+  try {
+    if (typeof process !== 'undefined' && process.env) {
+      return process.env[key];
+    }
+  } catch (e) {
+    // Ignore ReferenceError
+  }
+  return '';
+};
+
 // Helper to get client
 const getAiClient = () => {
-  const apiKey = process.env.API_KEY;
+  const apiKey = getEnv('API_KEY');
+  
   if (!apiKey) {
-    throw new Error("API Key is missing. Please set the API_KEY environment variable.");
+    throw new Error("API Key is missing. Please set the API_KEY (or VITE_API_KEY) environment variable.");
   }
   return new GoogleGenAI({ apiKey });
 };
