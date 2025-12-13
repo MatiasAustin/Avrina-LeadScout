@@ -17,15 +17,22 @@ export const useLeads = () => {
     setLoading(true);
     const user = await getCurrentUser();
     
-    // Determine if we should use Local Storage or Cloud
-    // Use Local if: Guest, Local Admin, or Supabase not Configured
-    const localMode = !user || user.role === 'guest' || user.id === 'local-admin' || !isSupabaseConfigured;
-    setIsLocalMode(localMode);
+    // Determine mode
+    // GUEST = LocalStorage
+    // LOGGED IN (User/Admin) = Supabase Only
+    const isGuest = user?.role === 'guest' || user?.id === 'local-admin' || !isSupabaseConfigured;
+    setIsLocalMode(isGuest);
 
-    if (localMode) {
+    if (isGuest) {
+      // Guest mode: Use Local Storage
       const saved = localStorage.getItem('leadscout_leads_guest');
-      if (saved) setLeads(JSON.parse(saved));
+      if (saved) {
+        setLeads(JSON.parse(saved));
+      } else {
+        setLeads([]); // No dummy data, clean slate
+      }
     } else if (user) {
+      // DB mode: Fetch from Supabase
       const { data, error } = await supabase
         .from('leads')
         .select('*')
@@ -46,6 +53,8 @@ export const useLeads = () => {
           outreach: d.outreach
         }));
         setLeads(mappedLeads);
+      } else {
+        setLeads([]); // Return empty if error or no data
       }
     }
     setLoading(false);

@@ -193,26 +193,29 @@ export const getConfig = async (): Promise<AppConfig> => {
   }
 
   try {
+    // Get the first row
     const { data, error } = await supabase
       .from('app_config')
-      .select('*') // Select all columns now
+      .select('*')
+      .order('id', { ascending: true }) 
       .limit(1)
       .single();
 
     if (error || !data) {
+      // Return default but do NOT save locally to avoid confusion
       return DEFAULT_CONFIG;
     }
     
     return { 
-      donationLink: data.donation_link || DEFAULT_CONFIG.donationLink,
-      announcementText: data.announcement_text || DEFAULT_CONFIG.announcementText,
+      donationLink: data.donation_link || '',
+      announcementText: data.announcement_text || '',
       adminWhatsapp: data.admin_whatsapp || '',
       adminInstagram: data.admin_instagram || '',
       adminLinkedin: data.admin_linkedin || '',
-      dedicationMessage: data.dedication_message || DEFAULT_CONFIG.dedicationMessage,
-      signature: data.signature || DEFAULT_CONFIG.signature,
-      appName: data.app_name || DEFAULT_CONFIG.appName,
-      appLogo: data.app_logo || DEFAULT_CONFIG.appLogo
+      dedicationMessage: data.dedication_message || '',
+      signature: data.signature || '',
+      appName: data.app_name || '',
+      appLogo: data.app_logo || ''
     };
   } catch (e) {
     return DEFAULT_CONFIG;
@@ -221,7 +224,6 @@ export const getConfig = async (): Promise<AppConfig> => {
 
 export const saveConfig = async (config: AppConfig) => {
   if (!isSupabaseConfigured) {
-     // Save locally if offline/local admin
      localStorage.setItem('avrina_local_config', JSON.stringify(config));
      return;
   }
@@ -236,31 +238,46 @@ export const saveConfig = async (config: AppConfig) => {
     dedication_message: config.dedicationMessage,
     signature: config.signature,
     app_name: config.appName,
-    app_logo: config.appLogo
+    app_logo: config.appLogo,
+    updated_at: new Date().toISOString()
   };
 
-  const { error } = await supabase
+  // 1. Check if a row exists
+  const { data: existingData } = await supabase
     .from('app_config')
-    .update(dbConfig)
-    .gt('id', 0); 
+    .select('id')
+    .limit(1);
 
-  if (error) throw error;
+  if (existingData && existingData.length > 0) {
+    // UPDATE existing
+    const { error } = await supabase
+      .from('app_config')
+      .update(dbConfig)
+      .eq('id', existingData[0].id);
+    
+    if (error) throw error;
+  } else {
+    // INSERT new if table is empty
+    const { error } = await supabase
+      .from('app_config')
+      .insert(dbConfig);
+      
+    if (error) throw error;
+  }
 };
 
 // --- ADMIN FUNCTIONS ---
 
 export const getAllUsers = async (): Promise<User[]> => {
   if (!isSupabaseConfigured) {
-    // Return dummy data so admin dashboard isn't empty in local mode
-    return [
-      { id: 'local-admin', email: 'admin@avrina.com', name: 'Local Admin', role: 'admin', createdAt: new Date().toISOString() },
-      { id: 'guest', email: 'guest@temp.com', name: 'Guest User', role: 'guest', createdAt: new Date().toISOString() }
-    ];
+    // Return empty if not connected, NO MORE DUMMY DATA
+    return [];
   }
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('*');
+    .select('*')
+    .order('created_at', { ascending: false });
     
   if (error) throw error;
 
@@ -269,7 +286,9 @@ export const getAllUsers = async (): Promise<User[]> => {
     email: p.email,
     name: p.full_name,
     role: p.role,
-    createdAt: p.created_at
+    createdAt: p.created_at,
+    jobTitle: p.job_title,
+    niche: p.target_niche
   }));
 };
 
