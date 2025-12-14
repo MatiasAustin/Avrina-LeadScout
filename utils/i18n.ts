@@ -40,6 +40,7 @@ export const translations = {
     leads_scan_title: "Magic Scan: Screenshots or Recording",
     leads_scan_btn: "Scan Files",
     leads_analyze_btn: "Analyze Fit",
+    leads_reanalyze_btn: "Re-analyze Fit",
     leads_outreach_btn: "Generate Outreach Strategy",
     
     // Errors
@@ -87,6 +88,7 @@ export const translations = {
     leads_scan_title: "Magic Scan: Screenshot atau Rekaman Layar",
     leads_scan_btn: "Scan File",
     leads_analyze_btn: "Analisis Kecocokan",
+    leads_reanalyze_btn: "Analisis Ulang",
     leads_outreach_btn: "Buat Pesan Penawaran",
 
     // Errors

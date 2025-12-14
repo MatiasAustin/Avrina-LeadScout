@@ -6,7 +6,7 @@ import {
   BrainCircuit, MessageCircle, CheckCircle, 
   AlertTriangle, XCircle, ChevronDown, Loader2,
   Stethoscope, Upload, Sparkles, Video, StopCircle, Film, Settings2, Copy, Send, Edit3,
-  UserCheck, ClipboardCheck, ClipboardList, UserCircle
+  UserCheck, ClipboardCheck, ClipboardList, UserCircle, RefreshCw
 } from 'lucide-react';
 import { useLeads } from '../hooks/useLeads';
 import { getFriendlyErrorMessage, getTranslation } from '../utils/i18n';
@@ -323,10 +323,24 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
           {/* Analysis Card */}
           <div className="bg-slate-50 p-5 rounded-lg border border-slate-200 h-fit">
             <div className="flex justify-between items-start mb-4">
-              <h4 className="font-semibold text-slate-800 flex items-center gap-2">
-                <BrainCircuit className="w-5 h-5 text-slate-700" />
-                AI Analysis
-              </h4>
+              <div className="flex flex-col">
+                <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+                  <BrainCircuit className="w-5 h-5 text-slate-700" />
+                  AI Analysis
+                </h4>
+                {/* Re-analyze Button */}
+                {lead.analysis && (
+                   <button 
+                      onClick={() => handleAnalyze(lead)}
+                      disabled={analyzing}
+                      className="text-[10px] text-slate-400 hover:text-blue-600 flex items-center gap-1 transition mt-1 ml-7"
+                      title="Update analysis based on your latest profile"
+                    >
+                      <RefreshCw className={`w-3 h-3 ${analyzing ? 'animate-spin' : ''}`} />
+                      {t('leads_reanalyze_btn')}
+                    </button>
+                )}
+              </div>
               <span className={`px-2 py-1 rounded text-xs font-bold ${
                 lead.analysis?.verdict === 'Recommended' ? 'bg-green-100 text-green-700' : 
                 lead.analysis?.verdict === 'Caution' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
