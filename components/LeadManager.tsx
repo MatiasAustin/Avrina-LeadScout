@@ -183,9 +183,10 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
       setMediaItems([]);
       setPreviews([]);
       alert("Scan complete! Fields updated.");
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Failed to scan media. Please try again.");
+      const msg = error.message || "Unknown API Error";
+      alert(`Failed to scan media: ${msg}`);
     } finally {
       setIsScanning(false);
     }
@@ -220,8 +221,9 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
       
       updateLead(lead.id, { analysis, status: newStatus });
       setSelectedLead({ ...lead, analysis, status: newStatus });
-    } catch (e) {
-      alert("Analysis failed. Try again.");
+    } catch (e: any) {
+      const msg = e.message || "Unknown Error";
+      alert(`Analysis failed: ${msg}`);
     } finally {
       setAnalyzing(false);
     }
@@ -260,8 +262,9 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
         );
         updateLead(lead.id, { outreach });
         setSelectedLead({ ...lead, outreach }); // update selected lead view
-      } catch (e) {
-        alert("Generation failed. Try again.");
+      } catch (e: any) {
+        const msg = e.message || "Unknown Error";
+        alert(`Generation failed: ${msg}`);
       } finally {
         setGenerating(false);
       }
@@ -277,8 +280,9 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
         updateLead(lead.id, { outreach: newOutreach });
         setSelectedLead({ ...lead, outreach: newOutreach });
         setRefineText('');
-      } catch(e) {
-        alert("Refinement failed.");
+      } catch(e: any) {
+        const msg = e.message || "Unknown Error";
+        alert(`Refinement failed: ${msg}`);
       } finally {
         setIsRefining(false);
       }

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { Platform, SearchStrategy, PositioningSuggestion } from '../types';
 import { generateSearchStrategy, generatePositioningSuggestions, parseResumeFromFile } from '../services/ai';
-import { Search, Loader2, Target, Copy, Check, MapPin, Users, ChevronDown, Briefcase, ListFilter, Sparkles, UserCircle, ExternalLink, Filter, ArrowRight, Lightbulb, FileText, Upload } from 'lucide-react';
+import { Search, Loader2, Target, Copy, Check, MapPin, Users, ChevronDown, Briefcase, ListFilter, Sparkles, UserCircle, ExternalLink, Filter, ArrowRight, Lightbulb, FileText, Upload, AlertTriangle } from 'lucide-react';
 
 interface Props {
   onNicheSelect: (niche: string) => void;
@@ -178,6 +178,7 @@ const StrategyGenerator: React.FC<Props> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingBio, setIsGeneratingBio] = useState(false);
   const [isParsingCV, setIsParsingCV] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
   // Data States
   const [strategy, setStrategy] = useState<SearchStrategy | null>(null);
@@ -211,6 +212,7 @@ const StrategyGenerator: React.FC<Props> = ({
     if (!finalJob) return;
     
     setIsLoading(true);
+    setErrorMsg(null);
     try {
       const result = await generateSearchStrategy(
         finalJob, 
@@ -221,8 +223,11 @@ const StrategyGenerator: React.FC<Props> = ({
         globalBio // Pass the bio for better context
       );
       setStrategy(result);
-    } catch (e) {
-      alert("Failed to generate strategy. Please check API Key.");
+    } catch (e: any) {
+      console.error(e);
+      const msg = e.message || "Unknown API Error";
+      setErrorMsg(`Failed to generate strategy: ${msg}`);
+      alert(`Error: ${msg}`);
     } finally {
       setIsLoading(false);
     }
@@ -236,12 +241,15 @@ const StrategyGenerator: React.FC<Props> = ({
     }
     
     setIsGeneratingBio(true);
+    setErrorMsg(null);
     setBioSuggestions([]);
     try {
       const suggestions = await generatePositioningSuggestions(finalJob, globalNiche);
       setBioSuggestions(suggestions);
-    } catch(e) {
-      alert("Failed to generate positioning. Please try again.");
+    } catch(e: any) {
+      console.error(e);
+      const msg = e.message || "Unknown API Error";
+      alert(`Failed to generate positioning: ${msg}`);
     } finally {
       setIsGeneratingBio(false);
     }
@@ -252,11 +260,13 @@ const StrategyGenerator: React.FC<Props> = ({
     if (!file) return;
 
     setIsParsingCV(true);
+    setErrorMsg(null);
     try {
       const summary = await parseResumeFromFile(file);
       setGlobalBio(summary);
-    } catch (err) {
-      alert("Failed to parse CV. Ensure it's a valid PDF, JPG, or DOCX file.");
+    } catch (err: any) {
+      const msg = err.message || "File parse error";
+      alert(`Failed to parse CV: ${msg}`);
       console.error(err);
     } finally {
       setIsParsingCV(false);
@@ -383,6 +393,13 @@ const StrategyGenerator: React.FC<Props> = ({
           Define Your Target
         </h2>
         
+        {errorMsg && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-lg text-red-700 text-sm flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            <p>{errorMsg}</p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           
           {/* JOB TITLE INPUT */}
