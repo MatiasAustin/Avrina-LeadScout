@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { Platform, SearchStrategy, PositioningSuggestion } from '../types';
+import { Platform, SearchStrategy, PositioningSuggestion, Language } from '../types';
 import { generateSearchStrategy, generatePositioningSuggestions, parseResumeFromFile } from '../services/ai';
 import { Search, Loader2, Target, Copy, Check, MapPin, Users, ChevronDown, Briefcase, ListFilter, Sparkles, UserCircle, ExternalLink, Filter, ArrowRight, Lightbulb, FileText, Upload, AlertTriangle } from 'lucide-react';
+import { getTranslation, getFriendlyErrorMessage } from '../utils/i18n';
 
 interface Props {
   onNicheSelect: (niche: string) => void;
@@ -12,6 +13,7 @@ interface Props {
   setGlobalNiche: (val: string) => void;
   globalBio: string;
   setGlobalBio: (val: string) => void;
+  language: Language;
 }
 
 // Data Presets
@@ -163,7 +165,8 @@ const StrategyGenerator: React.FC<Props> = ({
   onNicheSelect, 
   globalJobTitle, setGlobalJobTitle,
   globalNiche, setGlobalNiche,
-  globalBio, setGlobalBio
+  globalBio, setGlobalBio,
+  language
 }) => {
   // Local state for non-persisted form elements
   const [customJobTitle, setCustomJobTitle] = useState('');
@@ -193,6 +196,7 @@ const StrategyGenerator: React.FC<Props> = ({
   const isCustomJob = globalJobTitle === 'Other';
   const isCustomClient = idealClient === 'Other';
   const activeJob = isCustomJob ? customJobTitle : globalJobTitle;
+  const t = (key: any) => getTranslation(language, key);
   
   // Get persona options based on selected job
   const personaOptions = useMemo(() => {
@@ -225,9 +229,8 @@ const StrategyGenerator: React.FC<Props> = ({
       setStrategy(result);
     } catch (e: any) {
       console.error(e);
-      const msg = e.message || "Unknown API Error";
-      setErrorMsg(`Failed to generate strategy: ${msg}`);
-      alert(`Error: ${msg}`);
+      const friendlyMsg = getFriendlyErrorMessage(e, language);
+      setErrorMsg(friendlyMsg);
     } finally {
       setIsLoading(false);
     }
@@ -248,8 +251,8 @@ const StrategyGenerator: React.FC<Props> = ({
       setBioSuggestions(suggestions);
     } catch(e: any) {
       console.error(e);
-      const msg = e.message || "Unknown API Error";
-      alert(`Failed to generate positioning: ${msg}`);
+      const friendlyMsg = getFriendlyErrorMessage(e, language);
+      alert(friendlyMsg); 
     } finally {
       setIsGeneratingBio(false);
     }
@@ -265,8 +268,8 @@ const StrategyGenerator: React.FC<Props> = ({
       const summary = await parseResumeFromFile(file);
       setGlobalBio(summary);
     } catch (err: any) {
-      const msg = err.message || "File parse error";
-      alert(`Failed to parse CV: ${msg}`);
+      const friendlyMsg = getFriendlyErrorMessage(err, language);
+      alert(friendlyMsg);
       console.error(err);
     } finally {
       setIsParsingCV(false);
@@ -390,13 +393,16 @@ const StrategyGenerator: React.FC<Props> = ({
       <div className="bg-slate-50 p-6 rounded-xl shadow-sm border border-slate-200">
         <h2 className="text-xl font-semibold text-slate-800 mb-4 flex items-center gap-2">
           <Target className="w-5 h-5 text-slate-700" />
-          Define Your Target
+          {t('strat_title')}
         </h2>
         
         {errorMsg && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-lg text-red-700 text-sm flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-            <p>{errorMsg}</p>
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm flex items-start gap-3 shadow-sm animate-fade-in">
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-bold">Generation Failed</p>
+              <p className="mt-1">{errorMsg}</p>
+            </div>
           </div>
         )}
 
@@ -405,7 +411,7 @@ const StrategyGenerator: React.FC<Props> = ({
           {/* JOB TITLE INPUT */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-1">
-              <Briefcase className="w-3 h-3" /> I work as a...
+              <Briefcase className="w-3 h-3" /> {t('strat_role')}
             </label>
             <div className="relative">
               <select
@@ -442,7 +448,7 @@ const StrategyGenerator: React.FC<Props> = ({
 
           {/* PLATFORM INPUT */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Platform</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">{t('strat_platform')}</label>
             <div className="relative">
               <select
                 className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none bg-slate-50 focus:bg-slate-100 appearance-none cursor-pointer text-slate-800"
@@ -484,7 +490,7 @@ const StrategyGenerator: React.FC<Props> = ({
           {/* LOCATION INPUT */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-1">
-              <MapPin className="w-3 h-3" /> Target Location
+              <MapPin className="w-3 h-3" /> {t('strat_location')}
             </label>
             <input
               type="text"
@@ -498,7 +504,7 @@ const StrategyGenerator: React.FC<Props> = ({
           {/* IDEAL CLIENT PERSONA INPUT */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-1">
-              <Users className="w-3 h-3" /> Ideal Client Persona
+              <Users className="w-3 h-3" /> {t('strat_client')}
             </label>
             
             <div className="relative">
@@ -539,7 +545,7 @@ const StrategyGenerator: React.FC<Props> = ({
           {/* NICHE INPUT */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              Target Niche <span className="text-slate-400 font-normal">(Optional - AI will suggest if empty)</span>
+              {t('strat_niche')} <span className="text-slate-400 font-normal">(Optional - AI will suggest if empty)</span>
             </label>
             <input
               type="text"
@@ -555,8 +561,8 @@ const StrategyGenerator: React.FC<Props> = ({
             <div className="flex flex-wrap justify-between items-center mb-2 gap-2">
                <label className="block text-sm font-medium text-slate-700 flex items-center gap-1">
                 <UserCircle className="w-4 h-4" /> 
-                My Professional Profile / Resume Summary
-                <span className="text-slate-400 font-normal ml-1">(Used as Benchmark)</span>
+                {t('strat_bio')}
+                <span className="text-slate-400 font-normal ml-1">{t('strat_bio_hint')}</span>
               </label>
               
               <div className="flex items-center gap-2">
@@ -574,7 +580,7 @@ const StrategyGenerator: React.FC<Props> = ({
                   title="Upload PDF, JPG, or DOCX"
                 >
                   {isParsingCV ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
-                  {isParsingCV ? "Reading File..." : "Import from CV (PDF/IMG/DOC)"}
+                  {isParsingCV ? "Reading File..." : t('strat_btn_import')}
                 </button>
 
                 <button
@@ -583,7 +589,7 @@ const StrategyGenerator: React.FC<Props> = ({
                   className="text-xs flex items-center gap-1 text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition disabled:opacity-50 border border-slate-200"
                 >
                   {isGeneratingBio ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                  {isGeneratingBio ? "Generating..." : "Suggest Bio"}
+                  {isGeneratingBio ? "Generating..." : t('strat_btn_suggest')}
                 </button>
               </div>
             </div>
@@ -626,7 +632,7 @@ const StrategyGenerator: React.FC<Props> = ({
           className="mt-6 w-full bg-slate-800 hover:bg-slate-900 disabled:bg-slate-300 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg transform active:scale-[0.99]"
         >
           {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
-          Generate Extensive Search Strategy
+          {t('strat_btn_generate')}
         </button>
       </div>
 
@@ -658,7 +664,7 @@ const StrategyGenerator: React.FC<Props> = ({
             <div className="mt-8 pt-6 border-t border-slate-100">
                <h3 className="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
                  <Lightbulb className="w-4 h-4 text-purple-600" />
-                 AI Pro Tips (for {globalJobTitle || customJobTitle})
+                 {t('strat_results_tips')} (for {globalJobTitle || customJobTitle})
                </h3>
                <ul className="space-y-3 text-xs text-slate-600">
                 {strategy.tips.map((tip, i) => (
@@ -676,7 +682,7 @@ const StrategyGenerator: React.FC<Props> = ({
               <div>
                  <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                    <ListFilter className="w-5 h-5 text-slate-600" />
-                   Search Keywords ({strategy.keywords.length})
+                   {t('strat_results_keywords')} ({strategy.keywords.length})
                  </h3>
                  <p className="text-xs text-slate-500">Actionable queries for {platform}.</p>
               </div>

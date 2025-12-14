@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Lead, LeadStatus, Platform, LeadAnalysis, OutreachDraft, UserProfile, OutreachTone, OutreachLength } from '../types';
+import { Lead, LeadStatus, Platform, LeadAnalysis, OutreachDraft, UserProfile, OutreachTone, OutreachLength, Language } from '../types';
 import { analyzeLeadPotential, generateOutreachDraft, scanLeadFromMedia, MediaItem, refineOutreachDraft } from '../services/ai';
 import { 
   Plus, ExternalLink, MoreVertical, Trash2, 
@@ -9,6 +9,7 @@ import {
   UserCheck, ClipboardCheck, ClipboardList, UserCircle
 } from 'lucide-react';
 import { useLeads } from '../hooks/useLeads';
+import { getFriendlyErrorMessage, getTranslation } from '../utils/i18n';
 
 const getStatusColor = (status: LeadStatus) => {
   switch (status) {
@@ -26,9 +27,10 @@ interface Props {
   userJob: string;
   userNiche: string;
   userBio: string; // Received detailed bio/resume text
+  language: Language;
 }
 
-const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
+const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language }) => {
   const { leads, addLead, updateLead, deleteLead } = useLeads();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -52,6 +54,8 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const t = (key: any) => getTranslation(language, key);
 
   const handleAddLead = (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,8 +189,8 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
       alert("Scan complete! Fields updated.");
     } catch (error: any) {
       console.error(error);
-      const msg = error.message || "Unknown API Error";
-      alert(`Failed to scan media: ${msg}`);
+      const msg = getFriendlyErrorMessage(error, language);
+      alert(`Scan Failed: ${msg}`);
     } finally {
       setIsScanning(false);
     }
@@ -222,8 +226,8 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
       updateLead(lead.id, { analysis, status: newStatus });
       setSelectedLead({ ...lead, analysis, status: newStatus });
     } catch (e: any) {
-      const msg = e.message || "Unknown Error";
-      alert(`Analysis failed: ${msg}`);
+      const msg = getFriendlyErrorMessage(e, language);
+      alert(msg);
     } finally {
       setAnalyzing(false);
     }
@@ -263,8 +267,8 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
         updateLead(lead.id, { outreach });
         setSelectedLead({ ...lead, outreach }); // update selected lead view
       } catch (e: any) {
-        const msg = e.message || "Unknown Error";
-        alert(`Generation failed: ${msg}`);
+        const msg = getFriendlyErrorMessage(e, language);
+        alert(msg);
       } finally {
         setGenerating(false);
       }
@@ -281,8 +285,8 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
         setSelectedLead({ ...lead, outreach: newOutreach });
         setRefineText('');
       } catch(e: any) {
-        const msg = e.message || "Unknown Error";
-        alert(`Refinement failed: ${msg}`);
+        const msg = getFriendlyErrorMessage(e, language);
+        alert(msg);
       } finally {
         setIsRefining(false);
       }
@@ -390,7 +394,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
                     className="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition"
                   >
                     {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
-                    {lead.outreach ? "Regenerate Message" : "Generate Outreach Strategy"}
+                    {lead.outreach ? "Regenerate Message" : t('leads_outreach_btn')}
                   </button>
                 </div>
               </div>
@@ -413,7 +417,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
                     className="bg-slate-50 border border-slate-300 hover:bg-slate-100 text-slate-700 px-4 py-2 rounded-lg flex items-center justify-center gap-2 mx-auto text-sm font-medium transition"
                   >
                     {analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <BrainCircuit className="w-4 h-4" />}
-                    Analyze Fit
+                    {t('leads_analyze_btn')}
                   </button>
               </div>
             )}
@@ -518,7 +522,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex flex-col">
-          <h2 className="text-xl font-semibold text-slate-800">Lead Database</h2>
+          <h2 className="text-xl font-semibold text-slate-800">{t('leads_title')}</h2>
           {userJob && (
              <div className="text-xs text-slate-500 flex items-center gap-1 mt-1">
                <UserCircle className="w-3 h-3" />
@@ -532,7 +536,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
           className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm"
         >
           <Plus className="w-4 h-4" />
-          Add Lead
+          {t('leads_btn_add')}
         </button>
       </div>
 
@@ -541,7 +545,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-slate-50 rounded-2xl shadow-2xl max-w-lg w-full p-6 transform transition-all scale-100 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-slate-800">Add New Lead</h3>
+              <h3 className="text-xl font-bold text-slate-800">{t('leads_btn_add')}</h3>
               <button onClick={() => { setIsFormOpen(false); resetForm(); }} className="text-slate-400 hover:text-slate-600 transition">
                 <XCircle className="w-6 h-6" />
               </button>
@@ -553,7 +557,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
               <div className="bg-slate-100 p-4 rounded-lg border border-slate-200">
                 <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-slate-600" />
-                  Magic Scan: Screenshots or Recording
+                  {t('leads_scan_title')}
                 </label>
                 
                 {/* Controls */}
@@ -622,7 +626,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio }) => {
                     className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-md text-sm font-medium hover:bg-slate-900 transition shadow-sm disabled:bg-slate-300"
                   >
                     {isScanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <BrainCircuit className="w-4 h-4" />}
-                    {isScanning ? "Scanning Media..." : `Scan ${mediaItems.length} File(s)`}
+                    {isScanning ? "Scanning..." : `${t('leads_scan_btn')} (${mediaItems.length})`}
                   </button>
                 )}
                 

@@ -6,9 +6,10 @@ import AuthScreen from './components/AuthScreen';
 import AdminDashboard from './components/AdminDashboard';
 import ProfileSettings from './components/ProfileSettings';
 import Community from './components/Community';
-import { LayoutDashboard, Search, Users, Sparkles, LogOut, Shield, Coffee, AlertTriangle, Loader2, UserCircle, MessageSquare, Phone, Instagram, Linkedin, Megaphone, AlertCircle, Menu, X, Moon, Sun, Heart } from 'lucide-react';
+import { LayoutDashboard, Search, Users, Sparkles, LogOut, Shield, Coffee, AlertTriangle, Loader2, UserCircle, MessageSquare, Phone, Instagram, Linkedin, Megaphone, AlertCircle, Menu, X, Moon, Sun, Heart, Globe } from 'lucide-react';
 import { getCurrentUser, logout, getConfig } from './services/auth';
-import { User, AppConfig, Theme } from './types';
+import { User, AppConfig, Theme, Language } from './types';
+import { getTranslation } from './utils/i18n';
 
 // Color Palettes Definition
 const THEMES = {
@@ -26,19 +27,17 @@ const THEMES = {
     '--slate-950': '#020617',
   },
   pink: {
-    // UPDATED: All Pink Nuance
-    // Surfaces are very light pink, Text is deep rose/maroon
-    '--slate-50': '#fff1f2', // Rose-50 (Card Surface) - Was White
-    '--slate-100': '#ffe4e6', // Rose-100 (Page Background) - Was Rose-50
-    '--slate-200': '#fecdd3', // Rose-200 (Borders)
-    '--slate-300': '#fda4af', // Rose-300
-    '--slate-400': '#fb7185', // Rose-400
-    '--slate-500': '#f43f5e', // Rose-500
-    '--slate-600': '#e11d48', // Rose-600
-    '--slate-700': '#be123c', // Rose-700
-    '--slate-800': '#9f1239', // Rose-800 (Primary Text)
-    '--slate-900': '#881337', // Rose-900 (Headings)
-    '--slate-950': '#4c0519', // Rose-950
+    '--slate-50': '#fff1f2', 
+    '--slate-100': '#ffe4e6', 
+    '--slate-200': '#fecdd3', 
+    '--slate-300': '#fda4af', 
+    '--slate-400': '#fb7185', 
+    '--slate-500': '#f43f5e', 
+    '--slate-600': '#e11d48', 
+    '--slate-700': '#be123c', 
+    '--slate-800': '#9f1239', 
+    '--slate-900': '#881337', 
+    '--slate-950': '#4c0519', 
   },
   dark: {
     '--slate-50': '#1e293b', 
@@ -55,7 +54,6 @@ const THEMES = {
   }
 };
 
-// --- ANIMATION COMPONENT ---
 const LoveBubbles = () => {
   const [bubbles, setBubbles] = useState<{id: number, left: number, delay: number, size: number}[]>([]);
 
@@ -65,15 +63,14 @@ const LoveBubbles = () => {
       setBubbles(prev => {
         const newBubble = {
           id,
-          left: Math.random() * 100, // 0-100% width
+          left: Math.random() * 100, 
           delay: 0,
-          size: Math.random() * 1.5 + 0.5 // 0.5x to 2x size
+          size: Math.random() * 1.5 + 0.5 
         };
-        // Keep max 20 bubbles to prevent lag, remove old ones
         const cleanup = prev.filter(b => Date.now() - b.id < 8000); 
         return [...cleanup, newBubble];
       });
-    }, 800); // Add bubble every 800ms
+    }, 800); 
 
     return () => clearInterval(interval);
   }, []);
@@ -106,6 +103,7 @@ const App: React.FC = () => {
   // UI States
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>('light');
+  const [language, setLanguage] = useState<Language>('en');
 
   // Shared state that moves between tabs
   const [jobTitle, setJobTitle] = useState('');
@@ -121,6 +119,11 @@ const App: React.FC = () => {
     } else {
       changeTheme('light');
     }
+    // Load Language
+    const savedLang = localStorage.getItem('leadscout_lang') as Language;
+    if (savedLang) {
+      setLanguage(savedLang);
+    }
   }, []);
 
   const changeTheme = (newTheme: Theme) => {
@@ -129,18 +132,27 @@ const App: React.FC = () => {
     
     // Apply CSS variables to root
     const root = document.documentElement;
+    // Set Data Attribute for CSS targeting (Glassmorphism)
+    root.setAttribute('data-theme', newTheme);
+
     const colors = THEMES[newTheme];
     Object.entries(colors).forEach(([key, value]) => {
       root.style.setProperty(key, value);
     });
   };
 
+  const changeLanguage = (lang: Language) => {
+    setLanguage(lang);
+    localStorage.setItem('leadscout_lang', lang);
+  };
+
+  const t = (key: any) => getTranslation(language, key);
+
   const initApp = async () => {
     setLoadingAuth(true);
     const currentUser = await getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
-      // Initialize global state from User Profile
       setJobTitle(currentUser.jobTitle || '');
       setNiche(currentUser.niche || '');
       setBio(currentUser.bio || '');
@@ -225,7 +237,7 @@ const App: React.FC = () => {
   }
 
   if (!user) {
-    return <AuthScreen config={config} onAuthSuccess={(u) => {
+    return <AuthScreen config={config} language={language} setLanguage={changeLanguage} onAuthSuccess={(u) => {
       setUser(u);
       setJobTitle(u.jobTitle || '');
       setNiche(u.niche || '');
@@ -236,14 +248,13 @@ const App: React.FC = () => {
   return (
     <div className="h-screen flex flex-col bg-slate-100 overflow-hidden transition-colors duration-300 relative">
       
-      {/* Background Animation for Pink Theme */}
       {theme === 'pink' && <LoveBubbles />}
 
       {/* Guest Warning Banner */}
       {user.role === 'guest' && (
         <div className="bg-orange-100 text-orange-800 px-4 py-2 text-xs font-medium flex-shrink-0 flex items-center justify-center gap-2 border-b border-orange-200 relative z-10">
           <AlertTriangle className="w-3 h-3" />
-          Guest Mode Active. Data is stored locally. Sign up to save data to cloud.
+          {t('guest_warning')}
         </div>
       )}
 
@@ -265,7 +276,7 @@ const App: React.FC = () => {
          </button>
       </div>
 
-      {/* Main Layout Container - Increased z-index from 10 to 30 to ensure Fixed Sidebar inside covers Mobile Header (z-20) */}
+      {/* Main Layout Container */}
       <div className="flex flex-1 flex-col md:flex-row overflow-hidden relative z-30">
         
         {/* BACKDROP FOR MOBILE */}
@@ -276,7 +287,7 @@ const App: React.FC = () => {
            />
         )}
 
-        {/* SIDEBAR NAVIGATION - FULLSCREEN MOBILE */}
+        {/* SIDEBAR NAVIGATION */}
         <aside 
           className={`
             fixed inset-0 z-50 w-full bg-slate-50 flex flex-col
@@ -296,7 +307,6 @@ const App: React.FC = () => {
                 {config.appName || 'Avrina LeadScout'}
               </h1>
 
-              {/* Dedication Message (Dynamic) */}
               {config.dedicationMessage && (
                 <div className="mt-3 mb-2 animate-fade-in">
                   <p className="text-[10px] text-slate-500 italic leading-relaxed border-l-2 border-indigo-200 pl-2">
@@ -311,7 +321,6 @@ const App: React.FC = () => {
               )}
             </div>
             
-            {/* Close Button Mobile Only */}
             <button 
               onClick={() => setSidebarOpen(false)}
               className="md:hidden p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg"
@@ -320,53 +329,74 @@ const App: React.FC = () => {
             </button>
           </div>
 
-          {/* User Info & Theme Toggle */}
-          <div className="px-6 mb-4 flex items-center justify-between">
-             <div>
-                <p className="text-xs text-slate-500 font-medium">Hello, {user.name.split(' ')[0]}</p>
-                {user.role === 'admin' && <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold">ADMIN</span>}
+          {/* User Info & Theme Toggle & Language Toggle */}
+          <div className="px-6 mb-4 flex flex-col gap-2">
+             <div className="flex items-center justify-between">
+                <div>
+                   <p className="text-xs text-slate-500 font-medium">Hello, {user.name.split(' ')[0]}</p>
+                   {user.role === 'admin' && <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold">ADMIN</span>}
+                </div>
+                
+                {/* Theme Switcher Mini */}
+                <div className="flex items-center bg-slate-100 rounded-lg p-1 border border-slate-200">
+                  <button 
+                    onClick={() => changeTheme('light')}
+                    className={`p-1 rounded ${theme === 'light' ? 'bg-slate-50 shadow-sm text-yellow-500' : 'text-slate-400 hover:text-slate-600'}`}
+                    title="Light Mode"
+                  >
+                    <Sun className="w-3 h-3" />
+                  </button>
+                  <button 
+                    onClick={() => changeTheme('dark')}
+                    className={`p-1 rounded ${theme === 'dark' ? 'bg-slate-700 shadow-sm text-indigo-200' : 'text-slate-400 hover:text-slate-600'}`}
+                    title="Dark Mode"
+                  >
+                    <Moon className="w-3 h-3" />
+                  </button>
+                  <button 
+                    onClick={() => changeTheme('pink')}
+                    className={`p-1 rounded ${theme === 'pink' ? 'bg-slate-50 shadow-sm text-pink-500' : 'text-slate-400 hover:text-slate-600'}`}
+                    title="Pink Mode"
+                  >
+                    <Heart className="w-3 h-3" />
+                  </button>
+                </div>
              </div>
-             
-             {/* Theme Switcher Mini */}
-             <div className="flex items-center bg-slate-100 rounded-lg p-1 border border-slate-200">
-               <button 
-                 onClick={() => changeTheme('light')}
-                 className={`p-1 rounded ${theme === 'light' ? 'bg-slate-50 shadow-sm text-yellow-500' : 'text-slate-400 hover:text-slate-600'}`}
-                 title="Light Mode"
-               >
-                 <Sun className="w-3 h-3" />
-               </button>
-               <button 
-                 onClick={() => changeTheme('dark')}
-                 className={`p-1 rounded ${theme === 'dark' ? 'bg-slate-700 shadow-sm text-indigo-200' : 'text-slate-400 hover:text-slate-600'}`}
-                 title="Dark Mode"
-               >
-                 <Moon className="w-3 h-3" />
-               </button>
-               <button 
-                 onClick={() => changeTheme('pink')}
-                 className={`p-1 rounded ${theme === 'pink' ? 'bg-slate-50 shadow-sm text-pink-500' : 'text-slate-400 hover:text-slate-600'}`}
-                 title="Pink Mode"
-               >
-                 <Heart className="w-3 h-3" />
-               </button>
+
+             {/* Language Switcher */}
+             <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg p-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                   <Globe className="w-3.5 h-3.5" /> Language
+                </div>
+                <div className="flex items-center gap-1">
+                   <button 
+                     onClick={() => changeLanguage('en')}
+                     className={`text-[10px] font-bold px-2 py-0.5 rounded ${language === 'en' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:bg-slate-100'}`}
+                   >
+                     EN
+                   </button>
+                   <button 
+                     onClick={() => changeLanguage('id')}
+                     className={`text-[10px] font-bold px-2 py-0.5 rounded ${language === 'id' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:bg-slate-100'}`}
+                   >
+                     ID
+                   </button>
+                </div>
              </div>
           </div>
           
           <nav className="px-3 space-y-1 flex-1 overflow-y-auto">
-             <NavItem id="strategy" label="Find Clients" icon={Search} />
-             <NavItem id="leads" label="Lead Database" icon={Users} />
-             <NavItem id="dashboard" label="Stats & Analytics" icon={LayoutDashboard} />
-             <NavItem id="community" label="Community" icon={MessageSquare} />
+             <NavItem id="strategy" label={t('nav_strategy')} icon={Search} />
+             <NavItem id="leads" label={t('nav_leads')} icon={Users} />
+             <NavItem id="dashboard" label={t('nav_dashboard')} icon={LayoutDashboard} />
+             <NavItem id="community" label={t('nav_community')} icon={MessageSquare} />
 
-            {/* ONLY SHOW PROFILE FOR REGISTERED USERS */}
             {user.role !== 'guest' && (
               <div className="my-2 border-t border-slate-100 pt-2">
-                <NavItem id="profile" label="My Profile" icon={UserCircle} />
+                <NavItem id="profile" label={t('nav_profile')} icon={UserCircle} />
               </div>
             )}
 
-            {/* Admin Tab */}
             {user.role === 'admin' && (
               <button
                 onClick={() => { setActiveTab('admin'); setSidebarOpen(false); }}
@@ -377,13 +407,12 @@ const App: React.FC = () => {
                 }`}
               >
                 <Shield className="w-5 h-5" />
-                Admin Panel
+                {t('nav_admin')}
               </button>
             )}
           </nav>
 
           <div className="p-3 mt-auto space-y-2 border-t border-slate-100 bg-slate-50/50">
-             {/* Sidebar Announcement (Partnership Box) */}
              {config.announcementText && (
               <div className="mb-3 p-3 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl text-white shadow-sm relative overflow-hidden group animate-fade-in">
                 <div className="absolute top-0 right-0 -mt-2 -mr-2 bg-white/10 w-12 h-12 rounded-full blur-xl"></div>
@@ -392,51 +421,17 @@ const App: React.FC = () => {
                     <Megaphone className="w-3.5 h-3.5 mt-0.5 animate-pulse shrink-0 text-yellow-300" />
                     <p className="text-[10px] font-medium leading-relaxed opacity-95">{config.announcementText}</p>
                   </div>
-
-                  {/* Integrated Social Icons */}
-                  {(config.adminWhatsapp || config.adminInstagram || config.adminLinkedin) && (
-                     <div className="flex items-center gap-2 pt-1">
-                        {config.adminWhatsapp && (
-                          <button 
-                            onClick={openWhatsApp}
-                            className="flex-1 flex items-center justify-center py-1.5 rounded bg-white/10 hover:bg-white/20 border border-white/20 transition text-white"
-                            title="WhatsApp"
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        {config.adminInstagram && (
-                          <a 
-                            href={config.adminInstagram} target="_blank" rel="noreferrer"
-                            className="flex-1 flex items-center justify-center py-1.5 rounded bg-white/10 hover:bg-white/20 border border-white/20 transition text-white"
-                            title="Instagram"
-                          >
-                            <Instagram className="w-3.5 h-3.5" />
-                          </a>
-                        )}
-                        {config.adminLinkedin && (
-                          <a 
-                            href={config.adminLinkedin} target="_blank" rel="noreferrer"
-                            className="flex-1 flex items-center justify-center py-1.5 rounded bg-white/10 hover:bg-white/20 border border-white/20 transition text-white"
-                            title="LinkedIn"
-                          >
-                            <Linkedin className="w-3.5 h-3.5" />
-                          </a>
-                        )}
-                     </div>
-                  )}
                 </div>
               </div>
              )}
 
-             {/* Support / Donate Group - Clean below partnership box */}
              <div className="space-y-2">
                 <button
                  onClick={openReportIssue}
                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 rounded-lg text-sm font-medium transition"
                >
                  <AlertCircle className="w-4 h-4" />
-                 Report Issue
+                 {t('btn_report')}
                </button>
 
                 {config.donationLink && (
@@ -445,7 +440,7 @@ const App: React.FC = () => {
                     className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 rounded-lg text-sm font-bold transition shadow-sm"
                   >
                     <Coffee className="w-4 h-4" />
-                    Support/Donate
+                    {t('btn_donate')}
                   </button>
                 )}
 
@@ -454,7 +449,7 @@ const App: React.FC = () => {
                   className="w-full flex items-center justify-center gap-2 px-4 py-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition"
                 >
                   <LogOut className="w-4 h-4" />
-                  Sign Out
+                  {t('btn_signout')}
                 </button>
              </div>
           </div>
@@ -470,7 +465,6 @@ const App: React.FC = () => {
               </div>
             )}
 
-            {/* ONLY SHOW PROFILE FOR REGISTERED USERS */}
             {activeTab === 'profile' && user && user.role !== 'guest' && (
               <ProfileSettings user={user} onProfileUpdate={handleProfileUpdate} />
             )}
@@ -485,13 +479,14 @@ const App: React.FC = () => {
                    setGlobalNiche={setNiche}
                    globalBio={bio}
                    setGlobalBio={setBio}
+                   language={language}
                  />
               </div>
             )}
 
             {activeTab === 'leads' && (
               <div className="animate-fade-in">
-                <LeadManager userJob={jobTitle} userNiche={niche} userBio={bio} />
+                <LeadManager userJob={jobTitle} userNiche={niche} userBio={bio} language={language} />
               </div>
             )}
 

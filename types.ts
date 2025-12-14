@@ -19,6 +19,7 @@ export enum LeadStatus {
 }
 
 export type Theme = 'light' | 'dark' | 'pink';
+export type Language = 'en' | 'id';
 
 export type OutreachTone = 'Casual' | 'Semi-Formal' | 'Professional';
 export type OutreachLength = 'Short' | 'Medium' | 'Long';

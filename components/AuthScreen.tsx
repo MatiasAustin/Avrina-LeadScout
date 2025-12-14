@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { login, register, loginAsGuest, resendConfirmation } from '../services/auth';
-import { User, AppConfig } from '../types';
-import { Sparkles, ArrowRight, User as UserIcon, Lock, Loader2, AlertCircle, Mail, ExternalLink } from 'lucide-react';
+import { User, AppConfig, Language } from '../types';
+import { Sparkles, ArrowRight, User as UserIcon, Lock, Loader2, AlertCircle, Mail, ExternalLink, Globe } from 'lucide-react';
+import { getTranslation } from '../utils/i18n';
 
 interface Props {
   onAuthSuccess: (user: User) => void;
-  config?: AppConfig; // Now accepts config for branding
+  config?: AppConfig; 
+  language: Language;
+  setLanguage: (lang: Language) => void;
 }
 
-const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config }) => {
+const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config, language, setLanguage }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,7 +21,7 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config }) => {
   const [showResend, setShowResend] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
 
-  // Default branding if config not yet loaded
+  const t = (key: any) => getTranslation(language, key);
   const appName = config?.appName || "Avrina LeadScout";
   const appLogo = config?.appLogo;
 
@@ -40,17 +43,13 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config }) => {
     } catch (err: any) {
       console.error(err);
       let msg = err.message || "Authentication failed.";
-      
-      // Handle specific "Email not confirmed" error
       if (msg.toLowerCase().includes("email not confirmed")) {
          setShowResend(true);
          msg = "Email address not confirmed. Please check your inbox.";
       } else if (msg.includes("Confirmation email sent")) {
-         // This comes from our custom logic in register()
-         setIsLogin(true); // Switch to login screen
+         setIsLogin(true); 
          msg = "Account created! Please check your email to confirm before logging in.";
       }
-
       setError(msg);
     } finally {
       setLoading(false);
@@ -77,6 +76,23 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config }) => {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4">
+      <div className="absolute top-4 right-4 z-10">
+         <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
+             <button 
+               onClick={() => setLanguage('en')}
+               className={`text-xs font-bold px-3 py-1.5 rounded ${language === 'en' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-100'}`}
+             >
+               EN
+             </button>
+             <button 
+               onClick={() => setLanguage('id')}
+               className={`text-xs font-bold px-3 py-1.5 rounded ${language === 'id' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-100'}`}
+             >
+               ID
+             </button>
+         </div>
+      </div>
+
       <div className="mb-8 text-center animate-fade-in">
         <div className="flex items-center justify-center gap-2 mb-2">
            <div className="p-3 bg-slate-800 rounded-xl shadow-lg">
@@ -93,7 +109,7 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config }) => {
 
       <div className="bg-slate-50 p-8 rounded-2xl shadow-xl border border-slate-100 w-full max-w-md animate-fade-in">
         <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-          {isLogin ? 'Welcome Back' : 'Create Account'}
+          {isLogin ? t('welcome_back') : t('create_account')}
         </h2>
 
         {error && (
@@ -113,14 +129,6 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config }) => {
                    {resendLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
                    Resend Confirmation Email
                  </button>
-
-                 <div className="bg-white/50 p-2 rounded border border-red-100">
-                    <p className="text-[10px] text-red-600 leading-tight">
-                      <span className="font-bold">Dev Tip:</span> In Supabase Dashboard, go to 
-                      <span className="font-mono mx-1">Authentication &gt; Providers &gt; Email</span> 
-                      and disable "Confirm email" to login without verification.
-                    </p>
-                 </div>
               </div>
             )}
           </div>
@@ -187,7 +195,7 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config }) => {
              onClick={handleGuest}
              className="w-full bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 font-medium py-2.5 rounded-lg transition text-sm flex items-center justify-center gap-2"
            >
-             Continue as Guest
+             {t('guest_mode')}
              <ArrowRight className="w-4 h-4" />
            </button>
         </div>
