@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getAllUsers, getConfig, saveConfig, sendPasswordReset } from '../services/auth';
 import { User, AppConfig } from '../types';
-import { Save, ShieldAlert, Users, DollarSign, KeyRound, Info, Loader2, ExternalLink, Coffee, Heart, Zap, Megaphone, Share2, Check, PenTool, Type, Image, AlertTriangle } from 'lucide-react';
+import { Save, ShieldAlert, Users, DollarSign, KeyRound, Info, Loader2, ExternalLink, Coffee, Heart, Zap, Megaphone, Share2, Check, PenTool, Type, Image, AlertTriangle, Upload, X } from 'lucide-react';
 
 interface Props {
   onConfigUpdate?: (config: AppConfig) => void;
@@ -23,6 +23,10 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
   const [configSaved, setConfigSaved] = useState(false);
   const [localSaveWarning, setLocalSaveWarning] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Logo Upload State
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadData();
@@ -82,6 +86,67 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
       } else {
         alert("Failed to save config: " + e.message);
       }
+    }
+  };
+
+  // --- LOGO COMPRESSION LOGIC ---
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = document.createElement('img');
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800; // Resize to max 800px to ensure < 5MB size
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          // Calculate new dimensions
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Convert to PNG to preserve transparency
+          const dataUrl = canvas.toDataURL('image/png');
+          resolve(dataUrl);
+        };
+        img.onerror = (error) => reject(error);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingLogo(true);
+    try {
+      const compressedLogo = await compressImage(file);
+      setConfig({ ...config, appLogo: compressedLogo });
+    } catch (error) {
+      console.error("Logo upload failed:", error);
+      alert("Failed to process image. Please try a different file.");
+    } finally {
+      setUploadingLogo(false);
+      // Reset input so same file can be selected again if needed
+      if (logoInputRef.current) logoInputRef.current.value = '';
     }
   };
 
@@ -149,17 +214,50 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
                      placeholder="Avrina LeadScout"
                    />
                  </div>
+                 
+                 {/* LOGO UPLOAD SECTION */}
                  <div>
                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2 flex items-center gap-2">
-                     Logo URL <Image className="w-3 h-3" />
+                     Logo (URL or Upload) <Image className="w-3 h-3" />
                    </label>
-                   <input 
-                     type="url" 
-                     value={config.appLogo || ''}
-                     onChange={e => setConfig({ ...config, appLogo: e.target.value })}
-                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 outline-none focus:bg-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                     placeholder="https://example.com/logo.png"
-                   />
+                   <div className="flex gap-2">
+                     <input 
+                       type="text" 
+                       value={config.appLogo || ''}
+                       onChange={e => setConfig({ ...config, appLogo: e.target.value })}
+                       className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 outline-none focus:bg-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all truncate"
+                       placeholder="https://... or Upload"
+                     />
+                     <input 
+                        type="file" 
+                        ref={logoInputRef}
+                        className="hidden"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={handleLogoUpload}
+                     />
+                     <button 
+                       type="button"
+                       onClick={() => logoInputRef.current?.click()}
+                       disabled={uploadingLogo}
+                       className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl border border-slate-200 transition-colors flex items-center gap-2 shrink-0"
+                       title="Upload Image"
+                     >
+                       {uploadingLogo ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+                     </button>
+                     {config.appLogo && (
+                       <button 
+                         type="button"
+                         onClick={() => setConfig({ ...config, appLogo: '' })}
+                         className="px-3 py-3 bg-red-50 hover:bg-red-100 text-red-500 rounded-xl border border-red-100 transition-colors shrink-0"
+                         title="Clear Logo"
+                       >
+                         <X className="w-5 h-5" />
+                       </button>
+                     )}
+                   </div>
+                   <p className="text-[10px] text-slate-400 mt-2">
+                      Auto-compressed to &lt;5MB. Supports PNG (Transparent), JPG, WEBP.
+                   </p>
                  </div>
               </div>
             </div>
