@@ -94,14 +94,14 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config, language, setLangu
       </div>
 
       <div className="mb-8 text-center animate-fade-in">
-        <div className="flex items-center justify-center gap-2 mb-2">
-           <div className="p-3 bg-slate-800 rounded-xl shadow-lg">
-             {appLogo ? (
-               <img src={appLogo} alt="Logo" className="w-8 h-8 object-contain" />
-             ) : (
+        <div className="flex items-center justify-center gap-2 mb-4">
+           {appLogo ? (
+             <img src={appLogo} alt="Logo" className="w-24 h-24 object-contain" />
+           ) : (
+             <div className="p-3 bg-slate-800 rounded-xl shadow-lg">
                <Sparkles className="w-8 h-8 text-slate-50" />
-             )}
-           </div>
+             </div>
+           )}
         </div>
         <h1 className="text-3xl font-bold text-slate-800">{appName}</h1>
         <p className="text-slate-500">Intelligent Client Hunting for Freelancers</p>

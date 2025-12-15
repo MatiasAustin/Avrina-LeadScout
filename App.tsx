@@ -126,6 +126,19 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Effect to update Favicon based on Config Logo
+  useEffect(() => {
+    if (config.appLogo) {
+      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = config.appLogo;
+    }
+  }, [config.appLogo]);
+
   const changeTheme = (newTheme: Theme) => {
     setTheme(newTheme);
     localStorage.setItem('leadscout_theme', newTheme);
@@ -262,9 +275,9 @@ const App: React.FC = () => {
       <div className="md:hidden bg-slate-50 border-b border-slate-200 p-4 flex justify-between items-center z-20 flex-shrink-0">
          <div className="flex items-center gap-2">
             {config.appLogo ? (
-              <img src={config.appLogo} alt="Logo" className="w-6 h-6 object-contain" />
+              <img src={config.appLogo} alt="Logo" className="w-8 h-8 object-contain" />
             ) : (
-              <Sparkles className="w-5 h-5 text-indigo-600" />
+              <Sparkles className="w-6 h-6 text-indigo-600" />
             )}
             <h1 className="font-bold text-slate-800">{config.appName || 'Avrina LeadScout'}</h1>
          </div>
@@ -298,11 +311,11 @@ const App: React.FC = () => {
         >
           <div className="p-6 pb-2 flex justify-between items-start">
             <div className="flex-1">
-              <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+              <h1 className="text-xl font-bold text-slate-800 flex items-center gap-3">
                 {config.appLogo ? (
-                  <img src={config.appLogo} alt="Logo" className="w-6 h-6 object-contain" />
+                  <img src={config.appLogo} alt="Logo" className="w-8 h-8 object-contain" />
                 ) : (
-                  <Sparkles className="w-5 h-5 text-indigo-600" />
+                  <Sparkles className="w-6 h-6 text-indigo-600" />
                 )}
                 {config.appName || 'Avrina LeadScout'}
               </h1>
