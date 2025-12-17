@@ -22,8 +22,8 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate }) => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const cvInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setIsSaving(true);
     setSaveSuccess(false);
 
@@ -35,9 +35,10 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate }) => {
       
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Failed to save profile.");
+      // Show specific error from Supabase to help debug DB issues
+      alert(`Failed to save profile: ${error.message || "Unknown error"}. Check if your Database tables are set up correctly.`);
     } finally {
       setIsSaving(false);
     }
@@ -50,14 +51,24 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate }) => {
     setIsParsingCV(true);
     try {
       const summary = await parseResumeFromFile(file);
+      
+      // 1. Update Local State
       setBio(summary);
-      alert("Bio successfully extracted from CV! Review and Save.");
-    } catch (err) {
-      alert("Failed to parse CV. Ensure it's a valid PDF, JPG, or DOCX file.");
+      
+      // 2. AUTO SAVE to Database immediately using the NEW summary
+      // We pass 'summary' explicitly because 'bio' state might not be updated yet in this closure
+      await updateUserProfile(user.id, { jobTitle, niche, bio: summary, name });
+      onProfileUpdate({ jobTitle, niche, bio: summary });
+      setSaveSuccess(true);
+      
+      alert("Bio successfully extracted from CV and Saved to Profile!");
+    } catch (err: any) {
+      alert(`Failed to parse CV or Save: ${err.message}. Ensure it's a valid PDF, JPG, or DOCX file.`);
       console.error(err);
     } finally {
       setIsParsingCV(false);
       if (cvInputRef.current) cvInputRef.current.value = '';
+      setTimeout(() => setSaveSuccess(false), 3000);
     }
   };
 
@@ -155,7 +166,7 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate }) => {
                   className="text-xs flex items-center gap-1 text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition border border-blue-200 font-medium"
                 >
                   {isParsingCV ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
-                  {isParsingCV ? "Parsing..." : "Auto-fill from CV"}
+                  {isParsingCV ? "Parsing & Saving..." : "Auto-fill from CV"}
                 </button>
               </div>
             </div>
