@@ -18,18 +18,21 @@ export const updateUserProfile = async (
   }
 
   // 2. Supabase Mode
+  // Note: We removed 'updated_at' from the payload to prevent "column not found" errors
+  // if the database table wasn't set up with that specific column.
   const updates = {
+    id: userId, // Required for upsert to work
     job_title: data.jobTitle,
     target_niche: data.niche,
     bio: data.bio,
-    updated_at: new Date().toISOString(),
     ...(data.name && { full_name: data.name })
   };
 
+  // Changed from update() to upsert()
+  // This ensures that if the profile row doesn't exist yet, it gets created.
   const { error } = await supabase
     .from('profiles')
-    .update(updates)
-    .eq('id', userId);
+    .upsert(updates);
 
   if (error) throw error;
 };

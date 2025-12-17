@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type, Schema } from "@google/genai";
+import { GoogleGenAI, Type, Schema, GenerateContentResponse } from "@google/genai";
 import mammoth from "mammoth";
 import { Platform, SearchStrategy, LeadAnalysis, OutreachDraft, UserProfile, PositioningSuggestion, OutreachTone, OutreachLength } from "../types";
 
@@ -30,6 +30,38 @@ const getAiClient = () => {
     throw new Error("API Key is missing. Please set the API_KEY (or VITE_API_KEY) environment variable.");
   }
   return new GoogleGenAI({ apiKey });
+};
+
+/**
+ * RETRY HELPER: Handles 503 (Overloaded) and 429 (Rate Limit) errors
+ * automatically using exponential backoff.
+ */
+const runWithRetry = async <T>(
+  operation: () => Promise<T>, 
+  retries = 3, 
+  delay = 2000
+): Promise<T> => {
+  try {
+    return await operation();
+  } catch (error: any) {
+    // Check for specific Gemini API error codes indicating temporary issues
+    const errMsg = error?.message || JSON.stringify(error);
+    const isTransient = errMsg.includes('503') || 
+                        errMsg.includes('overloaded') || 
+                        errMsg.includes('UNAVAILABLE') || 
+                        errMsg.includes('429');
+
+    if (retries > 0 && isTransient) {
+      console.warn(`AI Model Busy (503/429). Retrying in ${delay}ms... (${retries} retries left)`);
+      // Wait for the delay
+      await new Promise(resolve => setTimeout(resolve, delay));
+      // Retry with double the delay (Exponential Backoff)
+      return runWithRetry(operation, retries - 1, delay * 2);
+    }
+    
+    // If retries exhausted or non-transient error, throw original error
+    throw error;
+  }
 };
 
 /**
@@ -90,8 +122,8 @@ export const parseResumeFromFile = async (file: File): Promise<string> => {
       const result = await mammoth.extractRawText({ arrayBuffer });
       const extractedText = result.value;
       
-      // Send extracted text to Gemini
-      const response = await ai.models.generateContent({
+      // Send extracted text to Gemini with Retry
+      const response = await runWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: `
           CONTEXT: The following is text extracted from a user's resume (DOCX format).
@@ -100,11 +132,11 @@ export const parseResumeFromFile = async (file: File): Promise<string> => {
           RESUME TEXT:
           ${extractedText}
         `
-      });
-      return response.text.trim();
+      }));
+      return response.text ? response.text.trim() : "";
     } catch (e) {
       console.error("DOCX parsing error:", e);
-      throw new Error("Failed to read DOCX file.");
+      throw new Error("Failed to read DOCX file. Please try a PDF or Image instead.");
     }
   }
 
@@ -113,7 +145,8 @@ export const parseResumeFromFile = async (file: File): Promise<string> => {
   try {
     const base64Data = await fileToBase64(file);
     
-    const response = await ai.models.generateContent({
+    // Wrap with Retry
+    const response = await runWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: {
         parts: [
@@ -126,7 +159,7 @@ export const parseResumeFromFile = async (file: File): Promise<string> => {
           { text: prompt }
         ]
       }
-    });
+    }));
 
     if (response.text) {
       return response.text.trim();
@@ -180,14 +213,14 @@ export const generatePositioningSuggestions = async (
   };
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await runWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
         responseSchema: responseSchema,
       },
-    });
+    }));
 
     if (response.text) {
       const data = JSON.parse(response.text);
@@ -326,14 +359,14 @@ export const generateSearchStrategy = async (
   };
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await runWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
         responseSchema: responseSchema,
       },
-    });
+    }));
 
     if (response.text) {
       return JSON.parse(response.text) as SearchStrategy;
@@ -399,14 +432,14 @@ export const scanLeadFromMedia = async (
   ];
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await runWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
       model: "gemini-2.5-flash", // 2.5 Flash is excellent for video/multimodal
       contents: { parts },
       config: {
         responseMimeType: "application/json",
         responseSchema: responseSchema,
       },
-    });
+    }));
 
     if (response.text) {
       return JSON.parse(response.text);
@@ -466,14 +499,14 @@ export const analyzeLeadPotential = async (
   };
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await runWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
         responseSchema: responseSchema,
       },
-    });
+    }));
 
     if (response.text) {
       return JSON.parse(response.text) as LeadAnalysis;
@@ -542,14 +575,14 @@ export const generateOutreachDraft = async (
   };
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await runWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
         responseSchema: responseSchema,
       },
-    });
+    }));
 
     if (response.text) {
       return JSON.parse(response.text) as OutreachDraft;
@@ -597,14 +630,14 @@ export const refineOutreachDraft = async (
   };
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await runWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
         responseSchema: responseSchema,
       },
-    });
+    }));
 
     if (response.text) {
       return JSON.parse(response.text) as OutreachDraft;

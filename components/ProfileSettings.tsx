@@ -63,7 +63,20 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate }) => {
       
       alert("Bio successfully extracted from CV and Saved to Profile!");
     } catch (err: any) {
-      alert(`Failed to parse CV or Save: ${err.message}. Ensure it's a valid PDF, JPG, or DOCX file.`);
+      let errorMessage = err.message || "Unknown error";
+      
+      // Try to clean up JSON error message if present (e.g. from Google API)
+      try {
+         const jsonStart = errorMessage.indexOf('{');
+         if (jsonStart !== -1) {
+            const jsonPart = JSON.parse(errorMessage.substring(jsonStart));
+            if (jsonPart.error?.message) {
+                errorMessage = jsonPart.error.message;
+            }
+         }
+      } catch(e) {}
+
+      alert(`Failed to parse CV: ${errorMessage}. Please try again later.`);
       console.error(err);
     } finally {
       setIsParsingCV(false);
