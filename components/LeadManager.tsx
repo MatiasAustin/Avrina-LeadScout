@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Lead, LeadStatus, Platform, LeadAnalysis, OutreachDraft, UserProfile, OutreachTone, OutreachLength, Language } from '../types';
 import { analyzeLeadPotential, generateOutreachDraft, scanLeadFromMedia, MediaItem, refineOutreachDraft } from '../services/ai';
 import { 
@@ -6,7 +6,7 @@ import {
   BrainCircuit, MessageCircle, CheckCircle, 
   AlertTriangle, XCircle, ChevronDown, Loader2,
   Stethoscope, Upload, Sparkles, Video, StopCircle, Film, Settings2, Copy, Send, Edit3,
-  UserCheck, ClipboardCheck, ClipboardList, UserCircle, RefreshCw
+  UserCheck, ClipboardCheck, ClipboardList, UserCircle, RefreshCw, Info
 } from 'lucide-react';
 import { useLeads } from '../hooks/useLeads';
 import { getFriendlyErrorMessage, getTranslation } from '../utils/i18n';
@@ -26,7 +26,7 @@ const getStatusColor = (status: LeadStatus) => {
 interface Props {
   userJob: string;
   userNiche: string;
-  userBio: string; // Received detailed bio/resume text
+  userBio: string; 
   language: Language;
 }
 
@@ -49,13 +49,24 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [previews, setPreviews] = useState<{url: string, type: 'image' | 'video'}[]>([]);
   
-  // Recording State
+  // Recording State & Support Check
   const [isRecording, setIsRecording] = useState(false);
+  const [isScreenRecordSupported, setIsScreenRecordSupported] = useState(true);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const t = (key: any) => getTranslation(language, key);
+
+  // Check for Screen Recording support on mount
+  useEffect(() => {
+    const supported = !!(
+      navigator.mediaDevices && 
+      navigator.mediaDevices.getDisplayMedia && 
+      typeof MediaRecorder !== 'undefined'
+    );
+    setIsScreenRecordSupported(supported);
+  }, []);
 
   const handleAddLead = (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +95,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
     setPreviews([]);
   };
 
-  // --- FILE UPLOAD LOGIC ---
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -92,11 +102,10 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
     const newMediaItems: MediaItem[] = [];
     const newPreviews: {url: string, type: 'image' | 'video'}[] = [];
 
-    // Process all files
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit per file
-        alert(`File ${file.name} is too large (>10MB). Skipped.`);
+      if (file.size > 15 * 1024 * 1024) { 
+        alert(`File ${file.name} is too large (>15MB). Skipped.`);
         continue;
       }
 
@@ -119,13 +128,16 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
     setPreviews(prev => [...prev, ...newPreviews]);
   };
 
-  // --- SCREEN RECORDING LOGIC ---
   const startRecording = async () => {
+    if (!isScreenRecordSupported) {
+      alert("Screen recording is not supported by your browser or device (common on iOS/mobile). Please use 'Upload Files' instead.");
+      return;
+    }
+
     try {
-      // Prompt user to select screen/window
       const stream = await navigator.mediaDevices.getDisplayMedia({ 
         video: true,
-        audio: false // usually don't need audio for website analysis
+        audio: false 
       });
 
       const recorder = new MediaRecorder(stream);
@@ -138,8 +150,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
 
       recorder.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-        
-        // Convert to Base64 for AI
         const reader = new FileReader();
         reader.onloadend = () => {
            const base64String = (reader.result as string).split(',')[1];
@@ -147,8 +157,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
            setPreviews(prev => [...prev, { url: URL.createObjectURL(blob), type: 'video' }]);
         };
         reader.readAsDataURL(blob);
-        
-        // Stop all tracks to clear "Recording" indicator in browser
         stream.getTracks().forEach(track => track.stop());
         setIsRecording(false);
       };
@@ -156,14 +164,15 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
       recorder.start();
       setIsRecording(true);
 
-      // Add a listener if user clicks "Stop sharing" via browser UI
       stream.getVideoTracks()[0].onended = () => {
         if (recorder.state !== 'inactive') recorder.stop();
       };
 
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error starting screen record:", err);
-      // User likely cancelled
+      if (err.name !== 'NotAllowedError') {
+         alert("Could not start recording: " + (err.message || "Unknown error"));
+      }
     }
   };
 
@@ -173,7 +182,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
     }
   };
 
-  // --- EXECUTE SCAN ---
   const handleScan = async () => {
     if (mediaItems.length === 0) return;
 
@@ -183,7 +191,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
       setNewLeadNotes(prev => prev ? prev + "\n\n[Scanned]: " + scanResult.notes : scanResult.notes);
       setNewLeadPainPoints(prev => prev ? prev + "\n\n[Scanned]: " + scanResult.painPoints : scanResult.painPoints);
       
-      // Clear media after successful scan to save memory
       setMediaItems([]);
       setPreviews([]);
       alert("Scan complete! Fields updated.");
@@ -201,11 +208,9 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
     setPreviews([]);
   };
 
-  // --- ANALYZE & OUTREACH HELPERS (Existing) ---
   const handleAnalyze = async (lead: Lead) => {
     setAnalyzing(true);
     try {
-      // Pass the User Bio/Resume to the analysis service
       const profile: UserProfile & { bio?: string } = { 
         jobTitle: userJob, 
         targetNiche: userNiche, 
@@ -233,9 +238,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
     }
   };
 
-  // Sub-component for Analysis view to handle local tone/length state
   const AnalysisView = ({ lead }: { lead: Lead }) => {
-    // Determine default tone based on platform
     const defaultTone: OutreachTone = 
       (lead.platform === Platform.LinkedIn || lead.platform === Platform.Google) 
       ? 'Professional' 
@@ -265,7 +268,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
           length
         );
         updateLead(lead.id, { outreach });
-        setSelectedLead({ ...lead, outreach }); // update selected lead view
+        setSelectedLead({ ...lead, outreach }); 
       } catch (e: any) {
         const msg = getFriendlyErrorMessage(e, language);
         alert(msg);
@@ -303,8 +306,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
 
     return (
       <div className="space-y-6 animate-fade-in">
-        
-        {/* Lead Details Context Block */}
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
             <h5 className="font-semibold text-slate-700 mb-1">About / Bio</h5>
@@ -320,7 +321,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Analysis Card */}
           <div className="bg-slate-50 p-5 rounded-lg border border-slate-200 h-fit">
             <div className="flex justify-between items-start mb-4">
               <div className="flex flex-col">
@@ -328,13 +328,11 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
                   <BrainCircuit className="w-5 h-5 text-slate-700" />
                   AI Analysis
                 </h4>
-                {/* Re-analyze Button */}
                 {lead.analysis && (
                    <button 
                       onClick={() => handleAnalyze(lead)}
                       disabled={analyzing}
                       className="text-[10px] text-slate-400 hover:text-blue-600 flex items-center gap-1 transition mt-1 ml-7"
-                      title="Update analysis based on your latest profile"
                     >
                       <RefreshCw className={`w-3 h-3 ${analyzing ? 'animate-spin' : ''}`} />
                       {t('leads_reanalyze_btn')}
@@ -374,7 +372,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
                   </div>
                 </div>
                 
-                {/* Generation Controls */}
                 <div className="mt-4 pt-4 border-t border-slate-200">
                   <div className="flex items-center gap-2 mb-2">
                     <Settings2 className="w-3 h-3 text-slate-500" />
@@ -437,7 +434,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
             )}
           </div>
 
-          {/* Outreach Card */}
           {lead.outreach && (
             <div className="bg-slate-50 p-5 rounded-lg border border-slate-200 shadow-sm ring-1 ring-slate-100 flex flex-col h-full">
               <div className="flex justify-between items-center mb-4">
@@ -458,8 +454,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
               </div>
               
               <div className="space-y-4 text-sm flex-1 flex flex-col">
-                
-                {/* PRE-OUTREACH CHECKLIST (ACTION PLAN) */}
                 {lead.outreach.preparationSteps && lead.outreach.preparationSteps.length > 0 && (
                   <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
                     <h5 className="font-bold text-amber-800 text-xs uppercase mb-2 flex items-center gap-2">
@@ -486,13 +480,11 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
                   <button 
                     onClick={handleCopy}
                     className="absolute top-2 right-2 p-2 bg-slate-50 shadow-sm border border-slate-200 rounded text-slate-500 hover:text-slate-800 transition opacity-0 group-hover:opacity-100"
-                    title="Copy to Clipboard"
                   >
                     {copied ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                   </button>
                 </div>
 
-                {/* Refinement Box */}
                 <form onSubmit={handleRefineOutreach} className="flex gap-2 items-center bg-slate-100 p-1.5 rounded-lg border border-slate-200">
                   <div className="p-2 text-slate-400">
                     <Sparkles className="w-4 h-4" />
@@ -554,7 +546,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
         </button>
       </div>
 
-      {/* Add Lead Modal/Form Area */}
       {isFormOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-slate-50 rounded-2xl shadow-2xl max-w-lg w-full p-6 transform transition-all scale-100 max-h-[90vh] overflow-y-auto">
@@ -567,14 +558,12 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
             
             <form onSubmit={handleAddLead} className="space-y-5">
               
-              {/* Magic Scan Section */}
               <div className="bg-slate-100 p-4 rounded-lg border border-slate-200">
                 <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-slate-600" />
                   {t('leads_scan_title')}
                 </label>
                 
-                {/* Controls */}
                 <div className="flex flex-wrap items-center gap-3 mb-3">
                   <button
                     type="button"
@@ -586,19 +575,21 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
                     Upload Files
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={isRecording ? stopRecording : startRecording}
-                    disabled={isScanning}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition shadow-sm border ${
-                      isRecording 
-                        ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200' 
-                        : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
-                    }`}
-                  >
-                    {isRecording ? <StopCircle className="w-4 h-4 animate-pulse" /> : <Video className="w-4 h-4" />}
-                    {isRecording ? "Stop Recording" : "Record Screen"}
-                  </button>
+                  {isScreenRecordSupported && (
+                    <button
+                      type="button"
+                      onClick={isRecording ? stopRecording : startRecording}
+                      disabled={isScanning}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition shadow-sm border ${
+                        isRecording 
+                          ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200' 
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      {isRecording ? <StopCircle className="w-4 h-4 animate-pulse" /> : <Video className="w-4 h-4" />}
+                      {isRecording ? "Stop Recording" : "Record Screen"}
+                    </button>
+                  )}
 
                   <input
                     type="file"
@@ -610,7 +601,13 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
                   />
                 </div>
 
-                {/* Previews */}
+                {!isScreenRecordSupported && (
+                  <div className="mb-3 p-3 bg-blue-50 border border-blue-100 rounded-lg text-blue-800 text-[10px] flex items-start gap-2">
+                    <Info className="w-3 h-3 mt-0.5 shrink-0" />
+                    <p>Screen Recording is not supported on mobile. Please use your phone's native recorder and upload the file via <strong>Upload Files</strong>.</p>
+                  </div>
+                )}
+
                 {previews.length > 0 && (
                   <div className="mb-3 flex gap-2 overflow-x-auto pb-2">
                     {previews.map((prev, idx) => (
@@ -631,7 +628,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
                   </div>
                 )}
 
-                {/* Action Button */}
                 {mediaItems.length > 0 && (
                   <button
                     type="button"
@@ -688,7 +684,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
                  </div>
               </div>
 
-              {/* Enhanced Data Inputs */}
               <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
@@ -739,7 +734,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
         </div>
       )}
 
-      {/* Lead List - Switched bg-white to bg-slate-50 */}
       <div className="bg-slate-50 rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         {leads.length === 0 ? (
           <div className="p-8 text-center text-slate-500">
@@ -790,7 +784,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
                   </div>
                 </div>
 
-                {/* Expanded Detail View - Switched bg-white to bg-slate-50 */}
                 {selectedLead?.id === lead.id && (
                   <div className="p-4 border-t border-slate-100 bg-slate-50">
                      <AnalysisView lead={lead} />
