@@ -57,6 +57,8 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
         }
         if (newPassword) {
           await updatePassword(newPassword);
+          // Explicit notification for password success
+          alert(t('prof_pass_success'));
         }
       }
       

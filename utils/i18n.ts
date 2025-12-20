@@ -68,6 +68,7 @@ export const translations = {
     prof_pass_confirm: "Confirm New Password",
     prof_pass_hint: "Leave blank to keep current password.",
     prof_success: "Profile updated successfully!",
+    prof_pass_success: "Password updated successfully!",
     prof_err_match: "Passwords do not match.",
     
     // Errors
@@ -143,6 +144,7 @@ export const translations = {
     prof_pass_confirm: "Konfirmasi Password Baru",
     prof_pass_hint: "Kosongkan jika tidak ingin ganti password.",
     prof_success: "Profil berhasil diperbarui!",
+    prof_pass_success: "Password berhasil diperbarui!",
     prof_err_match: "Password tidak cocok.",
 
     // Errors
