@@ -10,6 +10,7 @@ import { LayoutDashboard, Search, Users, Sparkles, LogOut, Shield, Coffee, Alert
 import { getCurrentUser, logout, getConfig } from './services/auth';
 import { User, AppConfig, Theme, Language } from './types';
 import { getTranslation } from './utils/i18n';
+import { supabase } from './services/supabase';
 
 // Color Palettes Definition
 const THEMES = {
@@ -99,6 +100,7 @@ const App: React.FC = () => {
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'strategy' | 'leads' | 'community' | 'admin' | 'profile'>('strategy');
   const [config, setConfig] = useState<AppConfig>({ donationLink: '', appName: 'Avrina LeadScout' });
+  const [isRecovering, setIsRecovering] = useState(false);
   
   // UI States
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -112,6 +114,14 @@ const App: React.FC = () => {
 
   useEffect(() => {
     initApp();
+
+    // Listen for PASSWORD_RECOVERY event globally
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecovering(true);
+      }
+    });
+
     // Load theme
     const savedTheme = localStorage.getItem('leadscout_theme') as Theme;
     if (savedTheme && THEMES[savedTheme]) {
@@ -124,6 +134,10 @@ const App: React.FC = () => {
     if (savedLang) {
       setLanguage(savedLang);
     }
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   // Effect to update Favicon based on Config Logo
@@ -181,6 +195,7 @@ const App: React.FC = () => {
     setJobTitle('');
     setNiche('');
     setBio('');
+    setIsRecovering(false);
     setActiveTab('strategy');
   };
 
@@ -219,14 +234,6 @@ const App: React.FC = () => {
     }
   };
 
-  const openWhatsApp = () => {
-    if (config.adminWhatsapp) {
-      const phone = config.adminWhatsapp.replace(/\D/g, '');
-      const text = encodeURIComponent(`Hello Admin, I'm interested in collaboration.`);
-      window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
-    }
-  };
-
   // Nav Item Helper
   const NavItem = ({ id, label, icon: Icon }: any) => (
     <button
@@ -249,13 +256,23 @@ const App: React.FC = () => {
     return <div className="min-h-screen flex items-center justify-center bg-slate-50"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
   }
 
-  if (!user) {
-    return <AuthScreen config={config} language={language} setLanguage={changeLanguage} onAuthSuccess={(u) => {
-      setUser(u);
-      setJobTitle(u.jobTitle || '');
-      setNiche(u.niche || '');
-      setBio(u.bio || '');
-    }} />;
+  // Force show AuthScreen if in Recovery mode OR no user
+  if (!user || isRecovering) {
+    return (
+      <AuthScreen 
+        config={config} 
+        language={language} 
+        setLanguage={changeLanguage} 
+        forceUpdatePassword={isRecovering}
+        onAuthSuccess={(u) => {
+          setUser(u);
+          setJobTitle(u.jobTitle || '');
+          setNiche(u.niche || '');
+          setBio(u.bio || '');
+          setIsRecovering(false); // Clear recovery mode on success
+        }} 
+      />
+    );
   }
 
   return (

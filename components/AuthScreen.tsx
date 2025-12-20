@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { login, register, loginAsGuest, resendConfirmation, sendPasswordReset, updatePassword } from '../services/auth';
 import { User, AppConfig, Language } from '../types';
-import { Sparkles, ArrowRight, User as UserIcon, Lock, Loader2, AlertCircle, Mail, ChevronLeft, CheckCircle } from 'lucide-react';
+import { Sparkles, ArrowRight, User as UserIcon, Lock, Loader2, AlertCircle, Mail, ChevronLeft, CheckCircle } from 'lucide-center';
 import { getTranslation } from '../utils/i18n';
 import { supabase } from '../services/supabase';
 
@@ -10,12 +10,13 @@ interface Props {
   config?: AppConfig; 
   language: Language;
   setLanguage: (lang: Language) => void;
+  forceUpdatePassword?: boolean; // NEW PROP
 }
 
-const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config, language, setLanguage }) => {
+const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config, language, setLanguage, forceUpdatePassword }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const [isUpdatePassword, setIsUpdatePassword] = useState(false);
+  const [isUpdatePassword, setIsUpdatePassword] = useState(forceUpdatePassword || false);
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,16 +33,14 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config, language, setLangu
   const appName = config?.appName || "Avrina LeadScout";
   const appLogo = config?.appLogo;
 
-  // Listen for recovery session (Reset Password Link)
+  // Sync state if prop changes
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsUpdatePassword(true);
-        setIsLogin(false);
-        setIsForgotPassword(false);
-      }
-    });
-  }, []);
+    if (forceUpdatePassword) {
+      setIsUpdatePassword(true);
+      setIsLogin(false);
+      setIsForgotPassword(false);
+    }
+  }, [forceUpdatePassword]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,6 +63,8 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config, language, setLangu
            setSuccess('');
            setPassword('');
            setConfirmPassword('');
+           // If we force redirected, we might want to refresh the app state
+           window.location.hash = ''; // Clear tokens from URL
         }, 3000);
       } else if (isForgotPassword) {
         await sendPasswordReset(email);
