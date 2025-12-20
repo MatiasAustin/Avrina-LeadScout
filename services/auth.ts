@@ -65,8 +65,6 @@ export const register = async (name: string, email: string, password: string): P
 
   if (error) throw error;
   
-  // If email confirmation is on, data.user is returned but session is null usually.
-  // We throw a specific error to UI to tell them to check email.
   if (data.user && !data.session) {
     throw new Error("Confirmation email sent. Please check your inbox.");
   }
@@ -84,7 +82,6 @@ export const login = async (email: string, password: string): Promise<User> => {
     throw new Error("Backend not connected. Use 'admin@avrina.com' to test Admin Panel locally.");
   }
 
-  // 1. ATTEMPT REAL SUPABASE LOGIN FIRST
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password
@@ -94,7 +91,6 @@ export const login = async (email: string, password: string): Promise<User> => {
     return mapSupabaseUser(data.user);
   }
 
-  // 2. FALLBACK: LOCAL ADMIN BACKDOOR
   if (email === 'admin@avrina.com' && password === 'Aois83bi%^6as') {
      console.warn("Logged in via Backdoor due to Supabase auth failure.");
      return createLocalAdmin();
@@ -113,10 +109,27 @@ export const resendConfirmation = async (email: string) => {
   if (error) throw error;
 };
 
+// --- PASSWORD RESET ---
+
+export const sendPasswordReset = async (email: string) => {
+  if (!isSupabaseConfigured) throw new Error("Service not available offline.");
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin
+  });
+  if (error) throw error;
+};
+
+export const updatePassword = async (newPassword: string) => {
+  if (!isSupabaseConfigured) throw new Error("Service not available offline.");
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword
+  });
+  if (error) throw error;
+};
+
 // --- ACCOUNT DELETION ---
 
 export const deleteAccount = async (userId: string) => {
-  // 1. Guest/Local cleanup
   if (!isSupabaseConfigured || userId === 'guest' || userId === 'local-admin') {
     sessionStorage.clear();
     localStorage.removeItem('ls_job');
@@ -127,26 +140,11 @@ export const deleteAccount = async (userId: string) => {
   }
 
   try {
-    // 2. Supabase Cleanup
-    // Note: In a production app, it's better to use an RPC function or Cascade Delete in DB.
-    // Here we do a manual cleanup for safety.
-
-    // A. Delete Leads
     await supabase.from('leads').delete().eq('user_id', userId);
-    
-    // B. Delete Testimonials
     await supabase.from('testimonials').delete().eq('user_id', userId);
-
-    // C. Delete Profile (If policies allow)
     const { error: profileError } = await supabase.from('profiles').delete().eq('id', userId);
-    
-    // Note: We cannot delete from auth.users via client SDK directly without Admin API.
-    // Deleting the profile is usually enough to "deactivate" the user logic in this app structure.
     if (profileError) throw profileError;
-
-    // D. Sign Out
     await supabase.auth.signOut();
-    
   } catch (error: any) {
     console.error("Delete Account Error:", error);
     throw new Error("Failed to delete account data: " + error.message);
@@ -215,7 +213,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
   return null;
 };
 
-// --- CONFIG / DONATION ---
+// --- CONFIG ---
 
 const DEFAULT_CONFIG: AppConfig = { 
   donationLink: 'https://saweria.co/avrina',
@@ -230,7 +228,6 @@ const DEFAULT_CONFIG: AppConfig = {
 };
 
 export const getConfig = async (): Promise<AppConfig> => {
-  // 1. Try Local Storage First (Fastest & Fallback)
   const local = localStorage.getItem('avrina_local_config');
   let localConfig = local ? JSON.parse(local) : null;
 
@@ -239,7 +236,6 @@ export const getConfig = async (): Promise<AppConfig> => {
   }
 
   try {
-    // 2. Try Supabase
     const { data, error } = await supabase
       .from('app_config')
       .select('*')
@@ -248,12 +244,10 @@ export const getConfig = async (): Promise<AppConfig> => {
       .single();
 
     if (error || !data) {
-      // If DB fails or is empty, use LocalStorage if available
       if (localConfig) return { ...DEFAULT_CONFIG, ...localConfig };
       return DEFAULT_CONFIG;
     }
     
-    // DB Success
     return { 
       donationLink: data.donation_link || '',
       announcementText: data.announcement_text || '',
@@ -266,16 +260,13 @@ export const getConfig = async (): Promise<AppConfig> => {
       appLogo: data.app_logo || ''
     };
   } catch (e) {
-    // Fallback to local on crash
     if (localConfig) return { ...DEFAULT_CONFIG, ...localConfig };
     return DEFAULT_CONFIG;
   }
 };
 
 export const saveConfig = async (config: AppConfig) => {
-  // 1. ALWAYS Save to LocalStorage first (Backup/Optimistic)
   localStorage.setItem('avrina_local_config', JSON.stringify(config));
-
   if (!isSupabaseConfigured) return;
 
   const dbConfig = {
@@ -291,7 +282,6 @@ export const saveConfig = async (config: AppConfig) => {
   };
 
   try {
-    // 2. Try Supabase Write
     const { data: existingData, error: fetchError } = await supabase
       .from('app_config')
       .select('id')
@@ -317,18 +307,13 @@ export const saveConfig = async (config: AppConfig) => {
   }
 };
 
-// --- ADMIN FUNCTIONS ---
-
 export const getAllUsers = async (): Promise<User[]> => {
   if (!isSupabaseConfigured) return [];
-
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
     .order('created_at', { ascending: false });
-    
   if (error) throw error;
-
   return data.map((p: any) => ({
     id: p.id,
     email: p.email,
@@ -338,10 +323,4 @@ export const getAllUsers = async (): Promise<User[]> => {
     jobTitle: p.job_title,
     niche: p.target_niche
   }));
-};
-
-export const sendPasswordReset = async (email: string) => {
-  if (!isSupabaseConfigured) throw new Error("Service not available offline.");
-  const { error } = await supabase.auth.resetPasswordForEmail(email);
-  if (error) throw error;
 };

@@ -11,6 +11,15 @@ export const translations = {
     reset_instructions: "Enter your email address and we'll send you a link to reset your password.",
     btn_send_reset: "Send Reset Link",
     reset_success: "Password reset link sent! Please check your email inbox.",
+    
+    // New Password Form
+    reset_password_now_title: "Create New Password",
+    new_password_label: "New Password",
+    confirm_password_label: "Confirm New Password",
+    btn_update_password: "Update Password",
+    update_password_success: "Password updated successfully! You can now login.",
+    passwords_not_match: "Passwords do not match.",
+
     guest_mode: "Continue as Guest",
     guest_warning: "Guest Mode Active. Data is stored locally. Sign up to save data to cloud.",
     
@@ -65,6 +74,15 @@ export const translations = {
     reset_instructions: "Masukkan alamat email Anda dan kami akan mengirimkan tautan untuk mereset kata sandi Anda.",
     btn_send_reset: "Kirim Tautan Reset",
     reset_success: "Tautan reset kata sandi telah dikirim! Silakan periksa kotak masuk email Anda.",
+
+    // New Password Form
+    reset_password_now_title: "Buat Password Baru",
+    new_password_label: "Password Baru",
+    confirm_password_label: "Konfirmasi Password Baru",
+    btn_update_password: "Update Password",
+    update_password_success: "Password berhasil diperbarui! Sekarang Anda bisa login.",
+    passwords_not_match: "Password tidak cocok.",
+
     guest_mode: "Lanjut sebagai Tamu",
     guest_warning: "Mode Tamu Aktif. Data tersimpan di browser. Daftar untuk menyimpan ke cloud.",
 
