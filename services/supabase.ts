@@ -22,14 +22,19 @@ const getEnv = (key: string) => {
 };
 
 // Safe accessors
-const supabaseUrl = getEnv('SUPABASE_URL') || 'https://placeholder.supabase.co';
-const supabaseAnonKey = getEnv('SUPABASE_ANON_KEY') || 'placeholder';
+const supabaseUrl = getEnv('SUPABASE_URL');
+const supabaseAnonKey = getEnv('SUPABASE_ANON_KEY');
 
 // Export a flag to check if we are truly connected
-export const isSupabaseConfigured = !!(getEnv('SUPABASE_URL') && getEnv('SUPABASE_ANON_KEY'));
+export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
 
 if (!isSupabaseConfigured) {
   console.warn("Supabase credentials missing. App operating in limited mode (Guest only).");
+  console.info("To enable cloud features, add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment variables.");
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Initialize client (use placeholders if not configured to prevent crash)
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co', 
+  supabaseAnonKey || 'placeholder'
+);
