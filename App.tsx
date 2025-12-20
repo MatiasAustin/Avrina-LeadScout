@@ -496,7 +496,7 @@ const App: React.FC = () => {
             )}
 
             {activeTab === 'profile' && user && user.role !== 'guest' && (
-              <ProfileSettings user={user} onProfileUpdate={handleProfileUpdate} />
+              <ProfileSettings user={user} onProfileUpdate={handleProfileUpdate} language={language} />
             )}
 
             {activeTab === 'strategy' && (

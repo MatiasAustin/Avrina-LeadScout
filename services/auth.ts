@@ -109,7 +109,7 @@ export const resendConfirmation = async (email: string) => {
   if (error) throw error;
 };
 
-// --- PASSWORD RESET ---
+// --- PASSWORD & ACCOUNT UPDATE ---
 
 export const sendPasswordReset = async (email: string) => {
   if (!isSupabaseConfigured) throw new Error("Service not available offline.");
@@ -123,6 +123,14 @@ export const updatePassword = async (newPassword: string) => {
   if (!isSupabaseConfigured) throw new Error("Service not available offline.");
   const { error } = await supabase.auth.updateUser({
     password: newPassword
+  });
+  if (error) throw error;
+};
+
+export const updateEmail = async (newEmail: string) => {
+  if (!isSupabaseConfigured) throw new Error("Service not available offline.");
+  const { error } = await supabase.auth.updateUser({
+    email: newEmail
   });
   if (error) throw error;
 };

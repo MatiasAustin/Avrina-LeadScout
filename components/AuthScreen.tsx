@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { login, register, loginAsGuest, resendConfirmation, sendPasswordReset, updatePassword } from '../services/auth';
 import { User, AppConfig, Language } from '../types';
-import { Sparkles, ArrowRight, User as UserIcon, Lock, Loader2, AlertCircle, Mail, ChevronLeft, CheckCircle } from 'lucide-center';
+import { Sparkles, ArrowRight, User as UserIcon, Lock, Loader2, AlertCircle, Mail, ChevronLeft, CheckCircle } from 'lucide-react';
 import { getTranslation } from '../utils/i18n';
 import { supabase } from '../services/supabase';
 

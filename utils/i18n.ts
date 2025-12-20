@@ -57,6 +57,18 @@ export const translations = {
     leads_analyze_btn: "Analyze Fit",
     leads_reanalyze_btn: "Re-analyze Fit",
     leads_outreach_btn: "Generate Outreach Strategy",
+
+    // Profile
+    prof_title: "My Professional Profile",
+    prof_subtitle: "This data is used by AI to analyze leads and generate outreach messages.",
+    prof_section_account: "Account & Security",
+    prof_email_label: "Email Address",
+    prof_email_hint: "Changing email requires verification.",
+    prof_pass_label: "New Password",
+    prof_pass_confirm: "Confirm New Password",
+    prof_pass_hint: "Leave blank to keep current password.",
+    prof_success: "Profile updated successfully!",
+    prof_err_match: "Passwords do not match.",
     
     // Errors
     err_quota: "⚠️ High Traffic / Limit Reached. The AI is currently busy. Please wait 1 minute and try again.",
@@ -120,6 +132,18 @@ export const translations = {
     leads_analyze_btn: "Analisis Kecocokan",
     leads_reanalyze_btn: "Analisis Ulang",
     leads_outreach_btn: "Buat Pesan Penawaran",
+
+    // Profile
+    prof_title: "Profil Profesional Saya",
+    prof_subtitle: "Data ini digunakan AI untuk menganalisis prospek dan membuat pesan penawaran.",
+    prof_section_account: "Akun & Keamanan",
+    prof_email_label: "Alamat Email",
+    prof_email_hint: "Ganti email memerlukan verifikasi ulang.",
+    prof_pass_label: "Password Baru",
+    prof_pass_confirm: "Konfirmasi Password Baru",
+    prof_pass_hint: "Kosongkan jika tidak ingin ganti password.",
+    prof_success: "Profil berhasil diperbarui!",
+    prof_err_match: "Password tidak cocok.",
 
     // Errors
     err_quota: "⚠️ Trafik Tinggi / Limit Tercapai. AI sedang sibuk. Mohon tunggu 1 menit lalu coba lagi.",
