@@ -5,6 +5,12 @@ export const translations = {
     // Auth
     welcome_back: "Welcome Back",
     create_account: "Create Account",
+    forgot_password_title: "Reset Your Password",
+    forgot_password_link: "Forgot password?",
+    back_to_login: "Back to Login",
+    reset_instructions: "Enter your email address and we'll send you a link to reset your password.",
+    btn_send_reset: "Send Reset Link",
+    reset_success: "Password reset link sent! Please check your email inbox.",
     guest_mode: "Continue as Guest",
     guest_warning: "Guest Mode Active. Data is stored locally. Sign up to save data to cloud.",
     
@@ -53,6 +59,12 @@ export const translations = {
     // Auth
     welcome_back: "Selamat Datang Kembali",
     create_account: "Buat Akun Baru",
+    forgot_password_title: "Reset Kata Sandi",
+    forgot_password_link: "Lupa kata sandi?",
+    back_to_login: "Kembali ke Login",
+    reset_instructions: "Masukkan alamat email Anda dan kami akan mengirimkan tautan untuk mereset kata sandi Anda.",
+    btn_send_reset: "Kirim Tautan Reset",
+    reset_success: "Tautan reset kata sandi telah dikirim! Silakan periksa kotak masuk email Anda.",
     guest_mode: "Lanjut sebagai Tamu",
     guest_warning: "Mode Tamu Aktif. Data tersimpan di browser. Daftar untuk menyimpan ke cloud.",
 
