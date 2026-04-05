@@ -337,7 +337,7 @@ const App: React.FC = () => {
                 ) : (
                   <Sparkles className="w-6 h-6 text-indigo-600" />
                 )}
-                {config.appName || 'Avrina LeadScout'}
+                {config.appName || 'Avrina LeadScout'} <span className="text-[10px] text-red-500 font-bold ml-1 uppercase">[DEBUG]</span>
               </h1>
 
               {config.dedicationMessage && (

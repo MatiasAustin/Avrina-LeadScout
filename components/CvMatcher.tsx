@@ -17,6 +17,7 @@ const CvMatcher: React.FC<Props> = ({ language = 'en' }) => {
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  console.log("CvMatcher language prop:", language);
   const [result, setResult] = useState<CvAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -173,11 +174,10 @@ const CvMatcher: React.FC<Props> = ({ language = 'en' }) => {
             </div>
             <h2 className="text-2xl md:text-3xl font-black tracking-tight">{t('cv_title')}</h2>
             <button
-               onClick={() => setIsHelpOpen(true)}
-               className="ml-auto flex items-center gap-2 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-xl backdrop-blur-md transition-all border border-white/20 text-white font-bold text-xs shadow-sm"
+               onClick={() => { console.log("CV Help Clicked!"); setIsHelpOpen(true); }}
+               className="ml-auto px-3 py-1.5 bg-red-500 text-white rounded-xl font-bold text-xs shadow-lg"
             >
-              <HelpCircle className="w-4 h-4" />
-              {language === 'id' ? "Bantuan" : "Help"}
+              [TEST HELP]
             </button>
           </div>
           <p className="text-blue-100 text-sm md:text-base leading-relaxed max-w-2xl opacity-90">

@@ -35,6 +35,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
   const { leads, addLead, updateLead, deleteLead } = useLeads();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  console.log("LeadManager language prop:", language);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -541,11 +542,10 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setIsHelpOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition-all border border-indigo-200 shadow-sm font-bold text-xs"
+            onClick={() => { console.log("Help Clicked!"); setIsHelpOpen(true); }}
+            className="px-4 py-2 bg-red-500 text-white rounded-lg font-bold text-xs"
           >
-            <HelpCircle className="w-4 h-4" />
-            {language === 'id' ? "Bantuan" : "Help"}
+            [TEST HELP]
           </button>
           
           <button
