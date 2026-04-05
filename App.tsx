@@ -1,3 +1,4 @@
+// LAST PUSH: 2026-04-06T00:30:00+07:00
 import React, { useState, useEffect } from 'react';
 import StrategyGenerator from './components/StrategyGenerator';
 import LeadManager from './components/LeadManager';
@@ -310,6 +311,7 @@ const App: React.FC = () => {
       </div>
 
       {/* Main Layout Container */}
+      <div className="bg-red-600 text-white p-1 text-[8px] text-center font-bold animate-pulse">DEPLOY VERIFICATION: VER 0.3.1</div>
       <div className="flex flex-1 flex-col md:flex-row overflow-hidden relative z-30">
         
         {/* BACKDROP FOR MOBILE */}
