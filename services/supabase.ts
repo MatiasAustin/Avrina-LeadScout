@@ -38,3 +38,14 @@ export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co', 
   supabaseAnonKey || 'placeholder'
 );
+
+// Connection Tester
+export const checkDbConnection = async (): Promise<boolean> => {
+  if (!isSupabaseConfigured) return false;
+  try {
+    const { error } = await supabase.from('app_config').select('id').limit(1);
+    return !error;
+  } catch (e) {
+    return false;
+  }
+};

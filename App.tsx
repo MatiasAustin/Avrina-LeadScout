@@ -6,6 +6,7 @@ import AuthScreen from './components/AuthScreen';
 import AdminDashboard from './components/AdminDashboard';
 import ProfileSettings from './components/ProfileSettings';
 import Community from './components/Community';
+import SystemStatus from './components/SystemStatus';
 import { LayoutDashboard, Search, Users, Sparkles, LogOut, Shield, Coffee, AlertTriangle, Loader2, UserCircle, MessageSquare, Phone, Instagram, Linkedin, Megaphone, AlertCircle, Menu, X, Moon, Sun, Heart, Globe } from 'lucide-react';
 import { getCurrentUser, logout, getConfig } from './services/auth';
 import { User, AppConfig, Theme, Language } from './types';
@@ -453,6 +454,12 @@ const App: React.FC = () => {
                   </div>
                 </div>
               </div>
+             )}
+
+             {user.role === 'admin' && (
+               <div className="mb-4">
+                 <SystemStatus />
+               </div>
              )}
 
              <div className="space-y-2">

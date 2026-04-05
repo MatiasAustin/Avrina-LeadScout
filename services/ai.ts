@@ -648,3 +648,22 @@ export const refineOutreachDraft = async (
     throw error;
   }
 };
+
+/**
+ * AI Connection Tester
+ */
+export const checkAiConnection = async (): Promise<boolean> => {
+  try {
+    const ai = getAiClient();
+    // A fast, token-cheap ping
+    await runWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: "ping",
+      config: { maxOutputTokens: 1 }
+    }));
+    return true;
+  } catch (error) {
+    console.warn("AI Connection Failed:", error);
+    return false;
+  }
+};
