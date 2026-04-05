@@ -113,3 +113,13 @@ export interface Testimonial {
   content: string;
   date: string;
 }
+
+// --- NEW CV MATCHER TYPES ---
+export interface CvAnalysisResult {
+  matchScore: number;
+  reasoning: string;
+  matchingSkills: string[];
+  missingSkills: string[];
+  recommendation: 'Highly Recommended' | 'Good Fit' | 'Apply with Caution' | 'Not a Fit';
+  improvementTips: string[];
+}

@@ -7,7 +7,8 @@ import AdminDashboard from './components/AdminDashboard';
 import ProfileSettings from './components/ProfileSettings';
 import Community from './components/Community';
 import SystemStatus from './components/SystemStatus';
-import { LayoutDashboard, Search, Users, Sparkles, LogOut, Shield, Coffee, AlertTriangle, Loader2, UserCircle, MessageSquare, Phone, Instagram, Linkedin, Megaphone, AlertCircle, Menu, X, Moon, Sun, Heart, Globe } from 'lucide-react';
+import CvMatcher from './components/CvMatcher';
+import { LayoutDashboard, Search, Users, Sparkles, LogOut, Shield, Coffee, AlertTriangle, Loader2, UserCircle, MessageSquare, Phone, Instagram, Linkedin, Megaphone, AlertCircle, Menu, X, Moon, Sun, Heart, Globe, Briefcase } from 'lucide-react';
 import { getCurrentUser, logout, getConfig } from './services/auth';
 import { User, AppConfig, Theme, Language } from './types';
 import { getTranslation } from './utils/i18n';
@@ -99,7 +100,7 @@ const LoveBubbles = () => {
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'strategy' | 'leads' | 'community' | 'admin' | 'profile'>('strategy');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'strategy' | 'leads' | 'community' | 'admin' | 'profile' | 'cvMatcher'>('strategy');
   const [config, setConfig] = useState<AppConfig>({ donationLink: '', appName: 'Avrina LeadScout' });
   const [isRecovering, setIsRecovering] = useState(false);
   
@@ -421,6 +422,7 @@ const App: React.FC = () => {
              <NavItem id="leads" label={t('nav_leads')} icon={Users} />
              <NavItem id="dashboard" label={t('nav_dashboard')} icon={LayoutDashboard} />
              <NavItem id="community" label={t('nav_community')} icon={MessageSquare} />
+             <NavItem id="cvMatcher" label="CV Matcher" icon={Briefcase} />
 
             {user.role !== 'guest' && (
               <div className="my-2 border-t border-slate-100 pt-2">
@@ -529,6 +531,10 @@ const App: React.FC = () => {
 
             {activeTab === 'community' && user && (
                <Community user={user} onRegisterClick={handleLogout} />
+            )}
+
+            {activeTab === 'cvMatcher' && (
+              <CvMatcher />
             )}
 
             {activeTab === 'admin' && user.role === 'admin' && (

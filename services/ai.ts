@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type, Schema, GenerateContentResponse } from "@google/genai";
 import mammoth from "mammoth";
-import { Platform, SearchStrategy, LeadAnalysis, OutreachDraft, UserProfile, PositioningSuggestion, OutreachTone, OutreachLength } from "../types";
+import { Platform, SearchStrategy, LeadAnalysis, OutreachDraft, UserProfile, PositioningSuggestion, OutreachTone, OutreachLength, CvAnalysisResult } from "../types";
 
 // Helper to safely access environment variables
 const getEnv = (key: string) => {
@@ -667,3 +667,70 @@ export const checkAiConnection = async (): Promise<boolean> => {
     return false;
   }
 };
+
+/**
+ * CV Pattern Match Analyzer
+ */
+export const analyzeCvMatch = async (cvText: string, jobText: string): Promise<CvAnalysisResult> => {
+  const ai = getAiClient();
+
+  const prompt = `
+    Act as a strict, senior Technical Recruiter.
+    I will provide you with two pieces of text:
+    1. A Candidate's CV/Resume text.
+    2. A Job Description.
+
+    CANDIDATE CV:
+    """
+    ${cvText}
+    """
+
+    JOB DESCRIPTION:
+    """
+    ${jobText}
+    """
+
+    Task:
+    Analyze how well the Candidate fits the Job Description.
+
+    Provide:
+    1. A matchScore from 0 to 100 based on hard skills and required experience.
+    2. Detailed, recruiter-level reasoning for the score.
+    3. A list of matching skills mentioned in both (or synonymous).
+    4. A list of missing skills that are in the job description but NOT explicitly stated in the CV.
+    5. Actionable improvement tips (e.g. how they should edit their CV to show the missing skills better, or if they just shouldn't apply).
+  `;
+
+  const responseSchema: Schema = {
+    type: Type.OBJECT,
+    properties: {
+      matchScore: { type: Type.INTEGER, description: "Match score percentage (0-100)" },
+      reasoning: { type: Type.STRING, description: "Recruiter's logic for the score" },
+      matchingSkills: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of found skills" },
+      missingSkills: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of critically missing skills" },
+      recommendation: { type: Type.STRING, enum: ["Highly Recommended", "Good Fit", "Apply with Caution", "Not a Fit"] },
+      improvementTips: { type: Type.ARRAY, items: { type: Type.STRING }, description: "What to change on the CV before applying" }
+    },
+    required: ["matchScore", "reasoning", "matchingSkills", "missingSkills", "recommendation", "improvementTips"]
+  };
+
+  try {
+    const response = await runWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: responseSchema,
+      },
+    }));
+
+    if (response.text) {
+      return JSON.parse(response.text) as CvAnalysisResult;
+    }
+    throw new Error("No CV analysis generated");
+  } catch (error) {
+    console.error("Error matching CV:", error);
+    throw error;
+  }
+};
+
