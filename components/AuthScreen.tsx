@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { login, register, loginAsGuest, resendConfirmation, sendPasswordReset, updatePassword } from '../services/auth';
 import { User, AppConfig, Language } from '../types';
-import { Sparkles, ArrowRight, User as UserIcon, Lock, Loader2, AlertCircle, Mail, ChevronLeft, CheckCircle } from 'lucide-react';
+import { Sparkles, ArrowRight, User as UserIcon, Lock, Loader2, AlertCircle, Mail, ChevronLeft, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { getTranslation } from '../utils/i18n';
 import { supabase } from '../services/supabase';
 
@@ -22,6 +22,7 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config, language, setLangu
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -262,13 +263,20 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config, language, setLangu
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
                     <input 
-                      type="password" 
+                      type={showPassword ? "text" : "password"} 
                       value={password}
                       onChange={e => setPassword(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-800 outline-none transition text-sm text-slate-800"
+                      className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-800 outline-none transition text-sm text-slate-800"
                       placeholder="••••••••"
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
 
@@ -278,13 +286,20 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config, language, setLangu
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
                       <input 
-                        type="password" 
+                        type={showPassword ? "text" : "password"} 
                         value={confirmPassword}
                         onChange={e => setConfirmPassword(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-800 outline-none transition text-sm text-slate-800"
+                        className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-800 outline-none transition text-sm text-slate-800"
                         placeholder="••••••••"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 focus:outline-none"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
                     </div>
                   </div>
                 )}
