@@ -30,7 +30,7 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const cvInputRef = useRef<HTMLInputElement>(null);
 
-  const t = (key: any) => getTranslation(language, key);
+  const t = (key: any) => getTranslation(language as Language, key);
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();

@@ -734,3 +734,83 @@ export const analyzeCvMatch = async (cvText: string, jobText: string): Promise<C
   }
 };
 
+/**
+ * AI CV Restructurer: Reorganizes the CV for better impact.
+ */
+export const restructureCv = async (cvText: string): Promise<string> => {
+  const ai = getAiClient();
+  const prompt = `
+    Analyze the following CV content.
+    
+    Task:
+    Restructure and rewrite this CV to have a more logical and impactful flow.
+    Reorganize the sections (e.g., Professional Summary, Core Skills, Experience, Projects) to ensure the strongest information is presented first.
+    Use professional language and maintain all original information but optimize the phrasing for maximum impact.
+    
+    Format:
+    Plain text only. Use clear section headers in ALL CAPS. 
+    Do not use markdown formatting (like # or **).
+    
+    CV CONTENT:
+    """
+    ${cvText}
+    """
+  `;
+
+  try {
+    const response = await runWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    }));
+    return response.text ? response.text.trim() : "";
+  } catch (error) {
+    console.error("Error restructuring CV:", error);
+    throw error;
+  }
+};
+
+/**
+ * AI Resume Tailor: Rewrites the CV to match a specific job description.
+ */
+export const tailorResumeToJob = async (cvText: string, jobText: string): Promise<string> => {
+  const ai = getAiClient();
+  const prompt = `
+    Act as a professional resume writer for top-tier tech companies.
+    
+    CANDIDATE CV:
+    """
+    ${cvText}
+    """
+    
+    JOB DESCRIPTION:
+    """
+    ${jobText}
+    """
+    
+    Task:
+    Create a highly tailored version of the candidate's Resume specifically for THIS Job Description.
+    1. Align keywords from the JOB DESCRIPTION into the Resume.
+    2. Highlight experience that is most relevant to the Job Description's requirements.
+    3. Rewrite the Professional Summary to directly address how the candidate solves the company's specific needs.
+    4. Maintain honesty; reflect the candidate's existing experience but use the job's terminology.
+    
+    Format:
+    Plain text only. Use clear section headers in ALL CAPS.
+    Do not use markdown formatting (like # or **).
+    
+    OUTPUT:
+    Tailored Resume version.
+  `;
+
+  try {
+    const response = await runWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    }));
+    return response.text ? response.text.trim() : "";
+  } catch (error) {
+    console.error("Error tailoring resume:", error);
+    throw error;
+  }
+};
+

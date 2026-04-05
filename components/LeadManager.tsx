@@ -6,10 +6,11 @@ import {
   BrainCircuit, MessageCircle, CheckCircle, 
   AlertTriangle, XCircle, ChevronDown, Loader2,
   Stethoscope, Upload, Sparkles, Video, StopCircle, Film, Settings2, Copy, Send, Edit3,
-  UserCheck, ClipboardCheck, ClipboardList, UserCircle, RefreshCw, Info
+  UserCheck, ClipboardCheck, ClipboardList, UserCircle, RefreshCw, Info, HelpCircle
 } from 'lucide-react';
 import { useLeads } from '../hooks/useLeads';
 import { getFriendlyErrorMessage, getTranslation } from '../utils/i18n';
+import HelpGuide from './HelpGuide';
 
 const getStatusColor = (status: LeadStatus) => {
   switch (status) {
@@ -33,6 +34,7 @@ interface Props {
 const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language }) => {
   const { leads, addLead, updateLead, deleteLead } = useLeads();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -537,13 +539,22 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
              </div>
           )}
         </div>
-        <button
-          onClick={() => setIsFormOpen(true)}
-          className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          {t('leads_btn_add')}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsHelpOpen(true)}
+            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-indigo-100"
+            title={t('nav_guide')}
+          >
+            <HelpCircle className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setIsFormOpen(true)}
+            className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            {t('leads_btn_add')}
+          </button>
+        </div>
       </div>
 
       {isFormOpen && (
@@ -794,6 +805,13 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
           </div>
         )}
       </div>
+
+      <HelpGuide 
+        isOpen={isHelpOpen} 
+        onClose={() => setIsHelpOpen(false)} 
+        language={language} 
+        initialTab="leads" 
+      />
     </div>
   );
 };

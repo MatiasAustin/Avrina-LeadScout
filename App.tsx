@@ -8,6 +8,7 @@ import ProfileSettings from './components/ProfileSettings';
 import Community from './components/Community';
 import SystemStatus from './components/SystemStatus';
 import CvMatcher from './components/CvMatcher';
+import HelpGuide from './components/HelpGuide';
 import { LayoutDashboard, Search, Users, Sparkles, LogOut, Shield, Coffee, AlertTriangle, Loader2, UserCircle, MessageSquare, Phone, Instagram, Linkedin, Megaphone, AlertCircle, Menu, X, Moon, Sun, Heart, Globe, Briefcase } from 'lucide-react';
 import { getCurrentUser, logout, getConfig } from './services/auth';
 import { User, AppConfig, Theme, Language } from './types';
@@ -534,7 +535,7 @@ const App: React.FC = () => {
             )}
 
             {activeTab === 'cvMatcher' && (
-              <CvMatcher />
+              <CvMatcher language={language} />
             )}
 
             {activeTab === 'admin' && user.role === 'admin' && (
