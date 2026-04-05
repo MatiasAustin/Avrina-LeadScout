@@ -542,14 +542,15 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language })
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsHelpOpen(true)}
-            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-indigo-100"
-            title={t('nav_guide')}
+            className="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition-all border border-indigo-200 shadow-sm font-bold text-xs"
           >
-            <HelpCircle className="w-5 h-5" />
+            <HelpCircle className="w-4 h-4" />
+            {language === 'id' ? "Bantuan" : "Help"}
           </button>
+          
           <button
             onClick={() => setIsFormOpen(true)}
-            className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm"
+            className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm font-bold text-sm"
           >
             <Plus className="w-4 h-4" />
             {t('leads_btn_add')}

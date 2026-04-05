@@ -174,10 +174,10 @@ const CvMatcher: React.FC<Props> = ({ language = 'en' }) => {
             <h2 className="text-2xl md:text-3xl font-black tracking-tight">{t('cv_title')}</h2>
             <button
                onClick={() => setIsHelpOpen(true)}
-               className="ml-auto p-2 bg-white/10 hover:bg-white/20 rounded-xl backdrop-blur-sm transition-all border border-white/5"
-               title={t('nav_guide')}
+               className="ml-auto flex items-center gap-2 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-xl backdrop-blur-md transition-all border border-white/20 text-white font-bold text-xs shadow-sm"
             >
-              <HelpCircle className="w-6 h-6 text-white" />
+              <HelpCircle className="w-4 h-4" />
+              {language === 'id' ? "Bantuan" : "Help"}
             </button>
           </div>
           <p className="text-blue-100 text-sm md:text-base leading-relaxed max-w-2xl opacity-90">
