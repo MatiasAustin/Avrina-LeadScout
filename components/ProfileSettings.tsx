@@ -275,9 +275,9 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
             {user.role !== 'guest' && <p className="text-[10px] text-slate-400">{t('prof_pass_hint')}</p>}
           </div>
 
-          <div className="pt-8 border-t border-slate-100 flex items-center justify-end gap-3">
+          <div className="pt-8 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-end gap-3">
              {saveSuccess && (
-               <span className="text-green-600 text-sm font-bold flex items-center gap-1 animate-fade-in">
+               <span className="text-green-600 text-sm font-bold flex items-center justify-center sm:justify-start gap-1 animate-fade-in">
                  <CheckCircle className="w-4 h-4" />
                  {t('prof_success')}
                </span>
@@ -285,7 +285,7 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
              <button
               type="submit"
               disabled={isSaving}
-              className="bg-slate-800 hover:bg-slate-900 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-md hover:shadow-xl active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100"
+              className="bg-slate-800 hover:bg-slate-900 text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-xl active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 w-full sm:w-auto"
             >
               {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               Save All Changes

@@ -130,6 +130,15 @@ const CvMatcher: React.FC<Props> = ({ language = 'en' }) => {
     }
   };
 
+  const handleReset = () => {
+    setCvFile(null);
+    setCvText('');
+    setJobInput('');
+    setResult(null);
+    setError(null);
+    setGeneratedResume('');
+  };
+
   const handleCopy = () => {
     if (!generatedResume) return;
     navigator.clipboard.writeText(generatedResume);
@@ -173,12 +182,24 @@ const CvMatcher: React.FC<Props> = ({ language = 'en' }) => {
               <Sparkles className="w-6 h-6 text-blue-200" />
             </div>
             <h2 className="text-2xl md:text-3xl font-black tracking-tight">{t('cv_title')}</h2>
-            <button
-               onClick={() => { console.log("CV Help Clicked!"); setIsHelpOpen(true); }}
-               className="ml-auto px-3 py-1.5 bg-red-500 text-white rounded-xl font-bold text-xs shadow-lg"
-            >
-              [TEST HELP]
-            </button>
+            
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={handleReset}
+                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs shadow-sm transition-all flex items-center gap-2"
+                title="Reset all inputs"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Reset
+              </button>
+              <button
+                onClick={() => setIsHelpOpen(true)}
+                className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold shadow-sm transition-all"
+                title="Help Guide"
+              >
+                <HelpCircle className="w-5 h-5" />
+              </button>
+            </div>
           </div>
           <p className="text-blue-100 text-sm md:text-base leading-relaxed max-w-2xl opacity-90">
             {t('cv_subtitle')}
@@ -404,7 +425,7 @@ const CvMatcher: React.FC<Props> = ({ language = 'en' }) => {
                     <Sparkles className="w-4 h-4 text-purple-500" /> {t('cv_workspace_title')}
                   </h4>
                   
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       onClick={handleRestructure}
                       disabled={isOptimizing}

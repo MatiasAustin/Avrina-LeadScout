@@ -10,7 +10,7 @@ import Community from './components/Community';
 import SystemStatus from './components/SystemStatus';
 import CvMatcher from './components/CvMatcher';
 import HelpGuide from './components/HelpGuide';
-import { LayoutDashboard, Search, Users, Sparkles, LogOut, Shield, Coffee, AlertTriangle, Loader2, UserCircle, MessageSquare, Phone, Instagram, Linkedin, Megaphone, AlertCircle, Menu, X, Moon, Sun, Heart, Globe, Briefcase } from 'lucide-react';
+import { LayoutDashboard, Search, Users, Sparkles, LogOut, Shield, Coffee, AlertTriangle, Loader2, UserCircle, MessageSquare, Phone, Instagram, Linkedin, Megaphone, AlertCircle, Menu, X, Moon, Sun, Heart, Globe, Briefcase, HelpCircle } from 'lucide-react';
 import { getCurrentUser, logout, getConfig } from './services/auth';
 import { User, AppConfig, Theme, Language } from './types';
 import { getTranslation } from './utils/i18n';
@@ -108,6 +108,7 @@ const App: React.FC = () => {
   
   // UI States
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>('light');
   const [language, setLanguage] = useState<Language>('en');
 
@@ -311,7 +312,6 @@ const App: React.FC = () => {
       </div>
 
       {/* Main Layout Container */}
-      <div className="bg-red-600 text-white p-1 text-[8px] text-center font-bold animate-pulse">DEPLOY VERIFICATION: VER 0.3.1</div>
       <div className="flex flex-1 flex-col md:flex-row overflow-hidden relative z-30">
         
         {/* BACKDROP FOR MOBILE */}
@@ -339,7 +339,7 @@ const App: React.FC = () => {
                 ) : (
                   <Sparkles className="w-6 h-6 text-indigo-600" />
                 )}
-                {config.appName || 'Avrina LeadScout'} <span className="text-[10px] text-red-500 font-bold ml-1 uppercase">[DEBUG]</span>
+                {config.appName || 'Avrina LeadScout'}
               </h1>
 
               {config.dedicationMessage && (
@@ -427,11 +427,19 @@ const App: React.FC = () => {
              <NavItem id="community" label={t('nav_community')} icon={MessageSquare} />
              <NavItem id="cvMatcher" label="CV Matcher" icon={Briefcase} />
 
-            {user.role !== 'guest' && (
               <div className="my-2 border-t border-slate-100 pt-2">
                 <NavItem id="profile" label={t('nav_profile')} icon={UserCircle} />
               </div>
-            )}
+
+            <div className="my-2 border-t border-slate-100 pt-2">
+              <button
+                onClick={() => { setIsGuideOpen(true); setSidebarOpen(false); }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-indigo-600 hover:bg-indigo-50 transition-colors"
+              >
+                <HelpCircle className="w-5 h-5" />
+                {t('nav_guide')}
+              </button>
+            </div>
 
             {user.role === 'admin' && (
               <button
@@ -528,7 +536,13 @@ const App: React.FC = () => {
 
             {activeTab === 'leads' && (
               <div className="animate-fade-in">
-                <LeadManager userJob={jobTitle} userNiche={niche} userBio={bio} language={language} />
+                <LeadManager 
+                  userJob={jobTitle} 
+                  userNiche={niche} 
+                  userBio={bio} 
+                  language={language} 
+                  onBioUpdate={setBio}
+                />
               </div>
             )}
 
@@ -546,6 +560,13 @@ const App: React.FC = () => {
           </div>
         </main>
       </div>
+
+      <HelpGuide 
+        isOpen={isGuideOpen} 
+        onClose={() => setIsGuideOpen(false)} 
+        language={language} 
+        initialTab="leads" 
+      />
     </div>
   );
 };
