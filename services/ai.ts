@@ -51,8 +51,24 @@ const runWithRetry = async <T>(
       return runWithRetry(operation, retries - 1, delay * 2);
     }
     
-    // If retries exhausted or non-transient error, throw original error
-    throw error;
+    // If retries exhausted or non-transient error, throw user-friendly error
+    if (errMsg.includes('429') || errMsg.includes('Quota')) {
+      throw new Error("AI Model Quota Exceeded (429). The system has reached its request limit. Please update the API key or check Google AI Studio billing.");
+    }
+    if (errMsg.includes('403') || errMsg.includes('API_KEY_INVALID')) {
+      throw new Error("Invalid API Key (403). Please verify your Google API configuration.");
+    }
+    if (errMsg.includes('400')) {
+      throw new Error("Bad Request (400). The AI could not process the format of this file or request.");
+    }
+    if (errMsg.includes('{')) {
+      try {
+        const parsed = JSON.parse(errMsg);
+        if (parsed.error && parsed.error.message) throw new Error(parsed.error.message);
+      } catch (e) {}
+    }
+    
+    throw new Error(errMsg.length > 200 ? errMsg.substring(0, 200) + "..." : errMsg);
   }
 };
 

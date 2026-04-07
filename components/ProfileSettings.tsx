@@ -131,9 +131,9 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
         </p>
 
         {errorMsg && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 text-red-700 animate-fade-in">
+          <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 text-red-700 animate-fade-in w-full overflow-hidden">
             <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
-            <p className="text-sm font-medium">{errorMsg}</p>
+            <p className="text-sm font-medium break-words overflow-wrap-anywhere overflow-hidden">{errorMsg}</p>
           </div>
         )}
 
