@@ -2,30 +2,22 @@ import { GoogleGenAI, Type, Schema, GenerateContentResponse } from "@google/gena
 import mammoth from "mammoth";
 import { Platform, SearchStrategy, LeadAnalysis, OutreachDraft, UserProfile, PositioningSuggestion, OutreachTone, OutreachLength, CvAnalysisResult } from "../types";
 
-// Helper to safely access environment variables
-const getEnv = (key: string) => {
-  // 1. Check for Vite's import.meta.env
-  // @ts-ignore
-  if (typeof import.meta !== 'undefined' && import.meta.env) {
-    // @ts-ignore
-    return import.meta.env[`VITE_${key}`] || import.meta.env[key];
-  }
-  
-  // 2. Check for standard process.env
-  try {
-    if (typeof process !== 'undefined' && process.env) {
-      return process.env[key];
-    }
-  } catch (e) {
-    // Ignore ReferenceError
-  }
-  return '';
-};
-
 // Helper to get client
 const getAiClient = () => {
-  const apiKey = getEnv('API_KEY');
+  let apiKey = '';
   
+  // 1. Statically defined access for Vite's define plugin (this gets string-replaced)
+  try {
+    apiKey = process.env.API_KEY || '';
+  } catch (e) {}
+
+  // 2. Vite import.meta.env access
+  // @ts-ignore
+  if (!apiKey && typeof import.meta !== 'undefined' && import.meta.env) {
+    // @ts-ignore
+    apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_GOOGLE_API_KEY || import.meta.env.GOOGLE_API_KEY || '';
+  }
+
   if (!apiKey) {
     throw new Error("API Key is missing. Please set the API_KEY (or VITE_API_KEY) environment variable.");
   }
