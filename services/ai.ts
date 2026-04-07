@@ -2,56 +2,28 @@ import { GoogleGenAI, Type, Schema, GenerateContentResponse } from "@google/gena
 import mammoth from "mammoth";
 import { Platform, SearchStrategy, LeadAnalysis, OutreachDraft, UserProfile, PositioningSuggestion, OutreachTone, OutreachLength, CvAnalysisResult } from "../types";
 
-// Global key array and rotation state
-let apiKeys: string[] = [];
-let currentKeyIndex = 0;
-
-const initKeys = () => {
-  if (apiKeys.length > 0) return;
-  const keys = new Set<string>();
-  
-  try {
-    if (process.env.API_KEY) keys.add(process.env.API_KEY);
-    if (process.env.GEMINI_API_KEY) keys.add(process.env.GEMINI_API_KEY);
-    if (process.env.GOOGLE_API_KEY) keys.add(process.env.GOOGLE_API_KEY);
-  } catch (e) {}
-
-  // @ts-ignore
-  if (typeof import.meta !== 'undefined' && import.meta.env) {
-    // @ts-ignore
-    if (import.meta.env.VITE_API_KEY) keys.add(import.meta.env.VITE_API_KEY);
-    // @ts-ignore
-    if (import.meta.env.VITE_GOOGLE_API_KEY) keys.add(import.meta.env.VITE_GOOGLE_API_KEY);
-    // @ts-ignore
-    if (import.meta.env.GOOGLE_API_KEY) keys.add(import.meta.env.GOOGLE_API_KEY);
-    // @ts-ignore
-    if (import.meta.env.GEMINI_API_KEY) keys.add(import.meta.env.GEMINI_API_KEY);
-  }
-  
-  apiKeys = Array.from(keys).filter(k => k && k.trim() !== '');
-};
-
-// Helper to get client proxy wrapper
+// Helper to get client
 const getAiClient = () => {
-  initKeys();
-  if (apiKeys.length === 0) {
-    throw new Error("API Key is missing. Please set the GOOGLE_API_KEY or VITE_API_KEY environment variable.");
-  }
+  // 1. Static call for Vite
+  // @ts-ignore
+  let apiKey = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.VITE_API_KEY : '';
   
-  // Return a proxy that always checks 'currentKeyIndex' right when called
-  return {
-    models: {
-      generateContent: async (options: any) => {
-         const realAi = new GoogleGenAI({ apiKey: apiKeys[currentKeyIndex] });
-         return realAi.models.generateContent(options);
-      }
-    }
-  };
+  // 2. Fallback for Node/process.env
+  if (!apiKey) {
+    try {
+      apiKey = process.env.VITE_API_KEY || process.env.API_KEY || process.env.GEMINI_API_KEY || '';
+    } catch (e) {}
+  }
+
+  if (!apiKey) {
+    throw new Error("API Key is missing. Please set the VITE_API_KEY environment variable.");
+  }
+  return new GoogleGenAI({ apiKey });
 };
 
 /**
- * RETRY AND ROTATION HELPER
- * Handles 429, 503 errors and rotates API keys if multiple exist.
+ * RETRY HELPER: Handles 503 (Overloaded) and 429 (Rate Limit) errors
+ * automatically using exponential backoff.
  */
 const runWithRetry = async <T>(
   operation: () => Promise<T>, 
@@ -62,24 +34,14 @@ const runWithRetry = async <T>(
     return await operation();
   } catch (error: any) {
     const errMsg = error?.message || JSON.stringify(error);
-    const isRateLimit = errMsg.includes('429') || errMsg.includes('Quota');
     const isTransient = errMsg.includes('503') || 
                         errMsg.includes('overloaded') || 
                         errMsg.includes('UNAVAILABLE') || 
-                        isRateLimit;
-
-    // Automatic API Key Rotation
-    if (isRateLimit && apiKeys.length > 1) {
-      console.warn(`API Key ${currentKeyIndex + 1} of ${apiKeys.length} exhausted limit. Switching to backup key...`);
-      currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
-      
-      if (retries > 0) {
-        return runWithRetry(operation, retries - 1, 500); // Retry almost immediately with new key
-      }
-    }
+                        errMsg.includes('429') ||
+                        errMsg.includes('Quota');
 
     if (retries > 0 && isTransient) {
-      console.warn(`AI Model Busy... Retrying in ${delay}ms (${retries} retries left)`);
+      console.warn(`AI Model Busy/Rate Limited. Retrying in ${delay}ms... (${retries} retries left)`);
       await new Promise(resolve => setTimeout(resolve, delay));
       return runWithRetry(operation, retries - 1, delay * 2);
     }
