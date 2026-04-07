@@ -2,31 +2,56 @@ import { GoogleGenAI, Type, Schema, GenerateContentResponse } from "@google/gena
 import mammoth from "mammoth";
 import { Platform, SearchStrategy, LeadAnalysis, OutreachDraft, UserProfile, PositioningSuggestion, OutreachTone, OutreachLength, CvAnalysisResult } from "../types";
 
-// Helper to get client
-const getAiClient = () => {
-  let apiKey = '';
+// Global key array and rotation state
+let apiKeys: string[] = [];
+let currentKeyIndex = 0;
+
+const initKeys = () => {
+  if (apiKeys.length > 0) return;
+  const keys = new Set<string>();
   
-  // 1. Statically defined access for Vite's define plugin (this gets string-replaced)
   try {
-    apiKey = process.env.API_KEY || '';
+    if (process.env.API_KEY) keys.add(process.env.API_KEY);
+    if (process.env.GEMINI_API_KEY) keys.add(process.env.GEMINI_API_KEY);
+    if (process.env.GOOGLE_API_KEY) keys.add(process.env.GOOGLE_API_KEY);
   } catch (e) {}
 
-  // 2. Vite import.meta.env access
   // @ts-ignore
-  if (!apiKey && typeof import.meta !== 'undefined' && import.meta.env) {
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
     // @ts-ignore
-    apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_GOOGLE_API_KEY || import.meta.env.GOOGLE_API_KEY || '';
+    if (import.meta.env.VITE_API_KEY) keys.add(import.meta.env.VITE_API_KEY);
+    // @ts-ignore
+    if (import.meta.env.VITE_GOOGLE_API_KEY) keys.add(import.meta.env.VITE_GOOGLE_API_KEY);
+    // @ts-ignore
+    if (import.meta.env.GOOGLE_API_KEY) keys.add(import.meta.env.GOOGLE_API_KEY);
+    // @ts-ignore
+    if (import.meta.env.GEMINI_API_KEY) keys.add(import.meta.env.GEMINI_API_KEY);
   }
+  
+  apiKeys = Array.from(keys).filter(k => k && k.trim() !== '');
+};
 
-  if (!apiKey) {
-    throw new Error("API Key is missing. Please set the API_KEY (or VITE_API_KEY) environment variable.");
+// Helper to get client proxy wrapper
+const getAiClient = () => {
+  initKeys();
+  if (apiKeys.length === 0) {
+    throw new Error("API Key is missing. Please set the GOOGLE_API_KEY or VITE_API_KEY environment variable.");
   }
-  return new GoogleGenAI({ apiKey });
+  
+  // Return a proxy that always checks 'currentKeyIndex' right when called
+  return {
+    models: {
+      generateContent: async (options: any) => {
+         const realAi = new GoogleGenAI({ apiKey: apiKeys[currentKeyIndex] });
+         return realAi.models.generateContent(options);
+      }
+    }
+  };
 };
 
 /**
- * RETRY HELPER: Handles 503 (Overloaded) and 429 (Rate Limit) errors
- * automatically using exponential backoff.
+ * RETRY AND ROTATION HELPER
+ * Handles 429, 503 errors and rotates API keys if multiple exist.
  */
 const runWithRetry = async <T>(
   operation: () => Promise<T>, 
@@ -36,22 +61,30 @@ const runWithRetry = async <T>(
   try {
     return await operation();
   } catch (error: any) {
-    // Check for specific Gemini API error codes indicating temporary issues
     const errMsg = error?.message || JSON.stringify(error);
+    const isRateLimit = errMsg.includes('429') || errMsg.includes('Quota');
     const isTransient = errMsg.includes('503') || 
                         errMsg.includes('overloaded') || 
                         errMsg.includes('UNAVAILABLE') || 
-                        errMsg.includes('429');
+                        isRateLimit;
+
+    // Automatic API Key Rotation
+    if (isRateLimit && apiKeys.length > 1) {
+      console.warn(`API Key ${currentKeyIndex + 1} of ${apiKeys.length} exhausted limit. Switching to backup key...`);
+      currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
+      
+      if (retries > 0) {
+        return runWithRetry(operation, retries - 1, 500); // Retry almost immediately with new key
+      }
+    }
 
     if (retries > 0 && isTransient) {
-      console.warn(`AI Model Busy (503/429). Retrying in ${delay}ms... (${retries} retries left)`);
-      // Wait for the delay
+      console.warn(`AI Model Busy... Retrying in ${delay}ms (${retries} retries left)`);
       await new Promise(resolve => setTimeout(resolve, delay));
-      // Retry with double the delay (Exponential Backoff)
       return runWithRetry(operation, retries - 1, delay * 2);
     }
     
-    // If retries exhausted or non-transient error, throw user-friendly error
+    // Format user-friendly errors
     if (errMsg.includes('429') || errMsg.includes('Quota')) {
       throw new Error("AI Model Quota Exceeded (429). The system has reached its request limit. Please update the API key or check Google AI Studio billing.");
     }
