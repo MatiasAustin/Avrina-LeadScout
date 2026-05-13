@@ -105,8 +105,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
     setNewLeadUrl('');
     setNewLeadNotes('');
     setNewLeadPainPoints('');
-    setNewLeadValue(0);
-    setNewLeadCurrency('USD');
     setMediaItems([]);
     setPreviews([]);
   };
@@ -370,12 +368,26 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
 
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
-            <h5 className="font-semibold text-slate-700 mb-1">About / Bio</h5>
-            <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{lead.notes || "No notes provided."}</p>
+            <h5 className="font-semibold text-slate-700 mb-2 flex items-center gap-2">
+              <UserCircle className="w-4 h-4" /> About / Bio
+            </h5>
+            <textarea 
+              value={lead.notes || ""} 
+              onChange={e => updateLead(lead.id, { notes: e.target.value })}
+              className="w-full bg-white border border-slate-200 rounded-lg p-3 text-slate-600 leading-relaxed text-xs min-h-[120px] outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent transition-all shadow-sm"
+              placeholder="Enter details about the lead..."
+            />
           </div>
-          <div className="bg-red-50 p-3 rounded border border-red-100">
-            <h5 className="font-semibold text-red-800 mb-1 flex items-center gap-2"><Stethoscope className="w-4 h-4" /> Pain Points</h5>
-            <p className="text-red-700 leading-relaxed whitespace-pre-wrap">{lead.painPoints || "No specific problems noted."}</p>
+          <div>
+            <h5 className="font-semibold text-red-800 mb-2 flex items-center gap-2">
+              <Stethoscope className="w-4 h-4" /> Pain Points
+            </h5>
+            <textarea 
+              value={lead.painPoints || ""} 
+              onChange={e => updateLead(lead.id, { painPoints: e.target.value })}
+              className="w-full bg-red-50/30 border border-red-100 rounded-lg p-3 text-red-700 leading-relaxed text-xs min-h-[120px] outline-none focus:ring-2 focus:ring-red-300 focus:border-transparent transition-all shadow-sm"
+              placeholder="List their problems or needs..."
+            />
           </div>
         </div>
 
@@ -424,25 +436,38 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
             )}
           </div>
 
-          {lead.outreach && (
-            <div className="bg-slate-50 p-5 rounded-lg border border-slate-200 flex flex-col h-full">
-              <div className="flex justify-between items-center mb-4">
-                <h4 className="font-semibold text-slate-800 flex items-center gap-2"><Send className="w-5 h-5 text-blue-600" /> Message</h4>
-                <button onClick={handleCopy} className="p-2 bg-white border border-slate-200 rounded text-slate-500 hover:text-slate-800 transition">
-                  {copied ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                </button>
-              </div>
-              <div className="bg-white p-4 rounded border border-slate-200 flex-1 overflow-y-auto">
-                 <p className="whitespace-pre-wrap text-slate-700 font-mono text-sm">{lead.outreach.messageBody}</p>
-              </div>
+          <div className="bg-slate-50 p-5 rounded-lg border border-slate-200 flex flex-col h-full min-h-[300px]">
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="font-semibold text-slate-800 flex items-center gap-2"><Send className="w-5 h-5 text-blue-600" /> Outreach Message</h4>
+              <button onClick={handleCopy} className="p-2 bg-white border border-slate-200 rounded text-slate-500 hover:text-slate-800 transition">
+                {copied ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
+            <div className="bg-white rounded-lg border border-slate-200 flex-1 overflow-hidden flex flex-col">
+               <textarea 
+                 value={lead.outreach?.messageBody || ""} 
+                 onChange={e => {
+                   const currentOutreach = lead.outreach || { 
+                     messageBody: "", 
+                     visualSuggestions: [], 
+                     preparationSteps: [] 
+                   };
+                   const updatedOutreach = { ...currentOutreach, messageBody: e.target.value };
+                   updateLead(lead.id, { outreach: updatedOutreach });
+                 }}
+                 className="flex-1 w-full p-4 whitespace-pre-wrap text-slate-700 font-mono text-xs leading-relaxed outline-none focus:bg-slate-50/50 transition-colors min-h-[200px] resize-none"
+                 placeholder="Draft your message here or use AI to generate one..."
+               />
+            </div>
+            {lead.outreach && (
               <form onSubmit={handleRefineOutreach} className="mt-4 flex gap-2 items-center bg-white p-1 rounded-lg border border-slate-200">
                 <input type="text" value={refineText} onChange={e => setRefineText(e.target.value)} placeholder="Refine message..." className="flex-1 bg-transparent border-none outline-none text-xs px-2" />
                 <button type="submit" disabled={!refineText || isRefining} className="p-2 bg-slate-800 text-white rounded transition">
                   {isRefining ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
                 </button>
               </form>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     );
@@ -553,7 +578,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                  <select value={newLeadPlatform} onChange={e => setNewLeadPlatform(e.target.value as Platform)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none">
                     {Object.values(Platform).map(p => <option key={p} value={p}>{p}</option>)}
                  </select>
-               </div>
                </div>
                <input type="url" required value={newLeadUrl} onChange={e => setNewLeadUrl(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Profile URL" />
                <textarea value={newLeadNotes} onChange={e => setNewLeadNotes(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[80px]" placeholder="Bio / Notes" />
