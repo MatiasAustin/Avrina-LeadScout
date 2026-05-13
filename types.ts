@@ -65,6 +65,7 @@ export interface Lead {
   // NEW Revenue Tracking
   value?: number;
   currency?: string;
+  dealType?: 'project' | 'retainer';
 
   // AI Generated Data
   analysis?: LeadAnalysis;

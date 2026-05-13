@@ -51,6 +51,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
   const [newLeadPainPoints, setNewLeadPainPoints] = useState('');
   const [newLeadValue, setNewLeadValue] = useState<number>(0);
   const [newLeadCurrency, setNewLeadCurrency] = useState('USD');
+  const [newLeadDealType, setNewLeadDealType] = useState<'project' | 'retainer'>('project');
   
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState('');
@@ -97,7 +98,8 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
       notes: newLeadNotes,
       painPoints: newLeadPainPoints,
       value: newLeadValue,
-      currency: newLeadCurrency
+      currency: newLeadCurrency,
+      dealType: newLeadDealType
     };
     addLead(lead);
     setIsFormOpen(false);
@@ -257,7 +259,8 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
         painPoints: editingLead.painPoints,
         platform: editingLead.platform,
         value: editingLead.value,
-        currency: editingLead.currency
+        currency: editingLead.currency,
+        dealType: editingLead.dealType
       });
       setEditingLead(null);
     }
@@ -471,6 +474,9 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded uppercase">{lead.platform}</span>
                   <span className="text-[10px] text-slate-400 italic">{lead.niche}</span>
+                  {lead.status === LeadStatus.WON && lead.dealType && (
+                    <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 uppercase tracking-tight">{lead.dealType}</span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -516,12 +522,18 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                  </select>
                </div>
                <input type="url" required value={newLeadUrl} onChange={e => setNewLeadUrl(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Profile URL" />
-               <div className="grid grid-cols-3 gap-3">
-                 <input type="number" value={newLeadValue} onChange={e => setNewLeadValue(Number(e.target.value))} className="col-span-2 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Value (e.g. 500)" />
-                 <select value={newLeadCurrency} onChange={e => setNewLeadCurrency(e.target.value)} className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none">
-                    <option value="USD">USD</option>
-                    <option value="IDR">IDR</option>
-                    <option value="EUR">EUR</option>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                 <div className="flex bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
+                    <input type="number" value={newLeadValue} onChange={e => setNewLeadValue(Number(e.target.value))} className="w-full px-4 py-2.5 bg-transparent outline-none border-r border-slate-200" placeholder="Value" />
+                    <select value={newLeadCurrency} onChange={e => setNewLeadCurrency(e.target.value)} className="px-3 py-2.5 bg-transparent outline-none text-sm font-bold">
+                        <option value="USD">USD</option>
+                        <option value="IDR">IDR</option>
+                        <option value="EUR">EUR</option>
+                    </select>
+                 </div>
+                 <select value={newLeadDealType} onChange={e => setNewLeadDealType(e.target.value as 'project' | 'retainer')} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-bold">
+                    <option value="project">Project-Based</option>
+                    <option value="retainer">Monthly Retainer</option>
                  </select>
                </div>
                <textarea value={newLeadNotes} onChange={e => setNewLeadNotes(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[80px]" placeholder="Bio / Notes" />
@@ -539,16 +551,29 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
             <div className="space-y-4">
               <input type="text" value={editingLead.name} onChange={e => setEditingLead({...editingLead, name: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Name" />
               <input type="url" value={editingLead.url} onChange={e => setEditingLead({...editingLead, url: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="URL" />
-              <div className="grid grid-cols-3 gap-3">
-                 <input type="number" value={editingLead.value || 0} onChange={e => setEditingLead({...editingLead, value: Number(e.target.value)})} className="col-span-2 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Value" />
-                 <select value={editingLead.currency || 'USD'} onChange={e => setEditingLead({...editingLead, currency: e.target.value})} className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none">
-                    <option value="USD">USD</option>
-                    <option value="IDR">IDR</option>
-                    <option value="EUR">EUR</option>
-                 </select>
-               </div>
-              <textarea value={editingLead.notes} onChange={e => setEditingLead({...editingLead, notes: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[80px]" placeholder="Bio" />
-              <textarea value={editingLead.painPoints} onChange={e => setEditingLead({...editingLead, painPoints: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Pain Points" />
+              <div className={`p-4 rounded-xl space-y-4 border transition-all ${editingLead.status === LeadStatus.WON ? 'bg-indigo-50/50 border-indigo-200' : 'bg-slate-50 border-slate-200'}`}>
+                <div className="flex justify-between items-center">
+                  <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{editingLead.status === LeadStatus.WON ? 'Financial Details (Client)' : 'Financial Potential'}</h4>
+                  {editingLead.status === LeadStatus.WON && <span className="bg-indigo-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Deal Closed</span>}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="flex bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                      <input type="number" value={editingLead.value || 0} onChange={e => setEditingLead({...editingLead, value: Number(e.target.value)})} className="w-full px-4 py-2.5 bg-transparent outline-none border-r border-slate-200" placeholder="Value" />
+                      <select value={editingLead.currency || 'USD'} onChange={e => setEditingLead({...editingLead, currency: e.target.value})} className="px-3 py-2.5 bg-transparent outline-none text-sm font-bold">
+                          <option value="USD">USD</option>
+                          <option value="IDR">IDR</option>
+                          <option value="EUR">EUR</option>
+                      </select>
+                  </div>
+                  <select value={editingLead.dealType || 'project'} onChange={e => setEditingLead({...editingLead, dealType: e.target.value as 'project' | 'retainer'})} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm font-bold shadow-sm">
+                      <option value="project">Project-Based</option>
+                      <option value="retainer">Monthly Retainer</option>
+                  </select>
+                </div>
+              </div>
+
+              <textarea value={editingLead.notes} onChange={e => setEditingLead({...editingLead, notes: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[100px] text-sm" placeholder="Bio / Client Context" />
+              <textarea value={editingLead.painPoints} onChange={e => setEditingLead({...editingLead, painPoints: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-red-600 font-medium text-sm" placeholder="Client Pain Points / Solved Problems" />
               <button onClick={handleSaveEdit} className="w-full bg-slate-800 text-white font-bold py-3 rounded-xl shadow-lg">Save Changes</button>
             </div>
           </div>

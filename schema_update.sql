@@ -18,6 +18,7 @@ ADD COLUMN IF NOT EXISTS notes text,
 ADD COLUMN IF NOT EXISTS pain_points text,
 ADD COLUMN IF NOT EXISTS value numeric DEFAULT 0,
 ADD COLUMN IF NOT EXISTS currency text DEFAULT 'USD',
+ADD COLUMN IF NOT EXISTS deal_type text,
 ADD COLUMN IF NOT EXISTS analysis jsonb,
 ADD COLUMN IF NOT EXISTS outreach jsonb;
 
@@ -42,7 +43,10 @@ CREATE TABLE IF NOT EXISTS public.blogs (
 );
 
 ALTER TABLE public.blogs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can read published blogs" ON public.blogs;
 CREATE POLICY "Anyone can read published blogs" ON public.blogs FOR SELECT USING (status = 'published');
+
+DROP POLICY IF EXISTS "Admins can manage blogs" ON public.blogs;
 CREATE POLICY "Admins can manage blogs" ON public.blogs FOR ALL USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
 );
@@ -58,7 +62,10 @@ CREATE TABLE IF NOT EXISTS public.visitor_stats (
 );
 
 ALTER TABLE public.visitor_stats ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can insert stats" ON public.visitor_stats;
 CREATE POLICY "Anyone can insert stats" ON public.visitor_stats FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admins can view stats" ON public.visitor_stats;
 CREATE POLICY "Admins can view stats" ON public.visitor_stats FOR SELECT USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
 );

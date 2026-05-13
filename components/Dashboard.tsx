@@ -26,7 +26,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
   const TargetProgress = ({ label, current, target, icon: Icon, color }: any) => {
     const percent = Math.min(100, Math.round((current / target) * 100) || 0);
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider">
           <div className="flex items-center gap-2 text-slate-500">
              <Icon className={`w-3 h-3 ${color}`} />
@@ -34,8 +34,8 @@ const Dashboard: React.FC<Props> = ({ user }) => {
           </div>
           <span className="text-slate-800">{current} / {target}</span>
         </div>
-        <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-          <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${percent}%` }}></div>
+        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden shadow-inner">
+          <div className={`h-full rounded-full transition-all duration-700 ease-out ${color}`} style={{ width: `${percent}%` }}></div>
         </div>
       </div>
     );
@@ -67,18 +67,19 @@ const Dashboard: React.FC<Props> = ({ user }) => {
 
         <div className="bg-slate-50 p-6 rounded-2xl shadow-sm border border-slate-200 h-full relative overflow-hidden">
           <h4 className="absolute top-4 left-4 text-[10px] font-bold text-slate-400 uppercase z-10">Pipeline</h4>
-          <div className="w-full h-full pt-4">
+          <div className="w-full h-full">
               {data.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                   <Pie
                       data={data}
                       cx="50%"
-                      cy="55%"
-                      innerRadius={30}
-                      outerRadius={45}
+                      cy="50%"
+                      innerRadius={32}
+                      outerRadius={42}
                       paddingAngle={5}
                       dataKey="value"
+                      stroke="none"
                   >
                       {data.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
