@@ -8,8 +8,8 @@ import { getTranslation } from '../utils/i18n';
 
 interface Props {
   user: User;
-  onProfileUpdate: (data: { jobTitle: string; niche: string; bio: string }) => void;
-  language?: Language; // Added to support translations
+  onProfileUpdate: (data: { jobTitle: string; niche: string; bio: string; name: string; dailyTarget?: number; weeklyTarget?: number; monthlyTarget?: number }) => void;
+  language?: Language; 
 }
 
 const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'en' }) => {
@@ -18,6 +18,11 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
   const [bio, setBio] = useState(user.bio || '');
   const [name, setName] = useState(user.name || '');
   const [email, setEmail] = useState(user.email || '');
+
+  // Productivity Targets (Benchmarks)
+  const [dailyTarget, setDailyTarget] = useState(user.dailyTarget || 5);
+  const [weeklyTarget, setWeeklyTarget] = useState(user.weeklyTarget || 25);
+  const [monthlyTarget, setMonthlyTarget] = useState(user.monthlyTarget || 100);
 
   // Password fields
   const [newPassword, setNewPassword] = useState('');
@@ -38,8 +43,14 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
     setSaveSuccess(false);
     setErrorMsg(null);
     try {
-      await updateUserProfile(user.id, { jobTitle, niche, bio, name });
-      onProfileUpdate({ jobTitle, niche, bio });
+      await updateUserProfile(user.id, { 
+        jobTitle, niche, bio, name, 
+        dailyTarget, weeklyTarget, monthlyTarget 
+      });
+      onProfileUpdate({ 
+        jobTitle, niche, bio, name, 
+        dailyTarget, weeklyTarget, monthlyTarget 
+      });
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error: any) {
@@ -224,6 +235,42 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800 focus:border-slate-800 outline-none transition-all text-sm text-slate-800 min-h-[120px] leading-relaxed shadow-sm"
                   placeholder="Describe your experience and unique skills..."
                 />
+              </div>
+
+              {/* Productivity Benchmarks */}
+              <div className="pt-6 border-t border-slate-100 space-y-4">
+                <h3 className="text-xs font-bold text-slate-800 flex items-center gap-2">
+                  <Target className="w-4 h-4 text-rose-500" /> Productivity Benchmarks (Dashboard Goals)
+                </h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Daily Goal</label>
+                    <input
+                      type="number"
+                      value={dailyTarget}
+                      onChange={e => setDailyTarget(Number(e.target.value))}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-slate-800 shadow-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Weekly Goal</label>
+                    <input
+                      type="number"
+                      value={weeklyTarget}
+                      onChange={e => setWeeklyTarget(Number(e.target.value))}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-slate-800 shadow-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Monthly Goal</label>
+                    <input
+                      type="number"
+                      value={monthlyTarget}
+                      onChange={e => setMonthlyTarget(Number(e.target.value))}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-slate-800 shadow-sm"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end pt-2">

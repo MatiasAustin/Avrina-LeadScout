@@ -2,7 +2,15 @@ import { supabase, isSupabaseConfigured } from "./supabase";
 
 export const updateUserProfile = async (
   userId: string, 
-  data: { jobTitle: string; niche: string; bio: string; name?: string }
+  data: { 
+    jobTitle: string; 
+    niche: string; 
+    bio: string; 
+    name?: string;
+    dailyTarget?: number;
+    weeklyTarget?: number;
+    monthlyTarget?: number;
+  }
 ) => {
   
   // 1. Guest Mode / Offline Mode
@@ -10,7 +18,12 @@ export const updateUserProfile = async (
     localStorage.setItem('ls_job', data.jobTitle);
     localStorage.setItem('ls_niche', data.niche);
     localStorage.setItem('ls_bio', data.bio);
-    if (data.name) localStorage.setItem('ls_name', data.name); // Optional name storage for guest
+    if (data.name) localStorage.setItem('ls_name', data.name);
+    
+    // Save Targets to localStorage
+    if (data.dailyTarget) localStorage.setItem('ls_target_daily', data.dailyTarget.toString());
+    if (data.weeklyTarget) localStorage.setItem('ls_target_weekly', data.weeklyTarget.toString());
+    if (data.monthlyTarget) localStorage.setItem('ls_target_monthly', data.monthlyTarget.toString());
     
     // Simulate API delay
     await new Promise(r => setTimeout(r, 500));
@@ -18,13 +31,14 @@ export const updateUserProfile = async (
   }
 
   // 2. Supabase Mode
-  // Note: We removed 'updated_at' from the payload to prevent "column not found" errors
-  // if the database table wasn't set up with that specific column.
   const updates = {
-    id: userId, // Required for upsert to work
+    id: userId,
     job_title: data.jobTitle,
     target_niche: data.niche,
     bio: data.bio,
+    daily_target: data.dailyTarget,
+    weekly_target: data.weeklyTarget,
+    monthly_target: data.monthlyTarget,
     ...(data.name && { full_name: data.name })
   };
 

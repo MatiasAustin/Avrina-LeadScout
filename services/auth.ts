@@ -164,15 +164,27 @@ export const deleteAccount = async (userId: string) => {
 
 const createLocalAdmin = (): User => {
   sessionStorage.setItem('avrina_local_admin', 'true');
+  const savedJob = localStorage.getItem('ls_job') || 'Administrator';
+  const savedNiche = localStorage.getItem('ls_niche') || 'SaaS';
+  const savedBio = localStorage.getItem('ls_bio') || 'System Admin';
+  const savedName = localStorage.getItem('ls_name') || 'Local Admin';
+  
+  const savedTargetDaily = Number(localStorage.getItem('ls_target_daily')) || 5;
+  const savedTargetWeekly = Number(localStorage.getItem('ls_target_weekly')) || 25;
+  const savedTargetMonthly = Number(localStorage.getItem('ls_target_monthly')) || 100;
+
   return {
     id: 'local-admin',
     email: 'admin@avrina.com',
-    name: 'Local Admin',
+    name: savedName,
     role: 'admin',
     createdAt: new Date().toISOString(),
-    jobTitle: 'Administrator',
-    niche: 'SaaS',
-    bio: 'System Admin'
+    jobTitle: savedJob,
+    niche: savedNiche,
+    bio: savedBio,
+    dailyTarget: savedTargetDaily,
+    weeklyTarget: savedTargetWeekly,
+    monthlyTarget: savedTargetMonthly
   };
 };
 
@@ -180,16 +192,24 @@ export const loginAsGuest = (): User => {
   const savedJob = localStorage.getItem('ls_job') || '';
   const savedNiche = localStorage.getItem('ls_niche') || '';
   const savedBio = localStorage.getItem('ls_bio') || '';
+  const savedName = localStorage.getItem('ls_name') || 'Guest User';
+  
+  const savedTargetDaily = Number(localStorage.getItem('ls_target_daily')) || 5;
+  const savedTargetWeekly = Number(localStorage.getItem('ls_target_weekly')) || 25;
+  const savedTargetMonthly = Number(localStorage.getItem('ls_target_monthly')) || 100;
 
   const guest: User = {
     id: 'guest',
     email: 'guest@temp.com',
-    name: 'Guest User',
+    name: savedName,
     role: 'guest',
     createdAt: new Date().toISOString(),
     jobTitle: savedJob,
     niche: savedNiche,
-    bio: savedBio
+    bio: savedBio,
+    dailyTarget: savedTargetDaily,
+    weeklyTarget: savedTargetWeekly,
+    monthlyTarget: savedTargetMonthly
   };
   sessionStorage.setItem('avrina_guest_active', 'true');
   return guest;

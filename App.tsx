@@ -225,10 +225,18 @@ const App: React.FC = () => {
     setNiche(newNiche);
   };
 
-  const handleProfileUpdate = (data: { jobTitle: string; niche: string; bio: string }) => {
-    setJobTitle(data.jobTitle);
-    setNiche(data.niche);
-    setBio(data.bio);
+  const handleProfileUpdate = (data: { 
+    jobTitle: string; 
+    niche: string; 
+    bio: string; 
+    name?: string;
+    dailyTarget?: number;
+    weeklyTarget?: number;
+    monthlyTarget?: number
+  }) => {
+    if (data.jobTitle) setJobTitle(data.jobTitle);
+    if (data.niche) setNiche(data.niche);
+    if (data.bio) setBio(data.bio);
     if (user) {
       setUser({ ...user, ...data });
     }
