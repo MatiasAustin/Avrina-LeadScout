@@ -62,6 +62,10 @@ export interface Lead {
   notes: string; // User manually pasted bio or details
   painPoints: string; // New field: Specific problems observed by user
   
+  // NEW Revenue Tracking
+  value?: number;
+  currency?: string;
+
   // AI Generated Data
   analysis?: LeadAnalysis;
   outreach?: OutreachDraft;
@@ -89,6 +93,11 @@ export interface User {
   jobTitle?: string;
   niche?: string;
   bio?: string;
+
+  // NEW Productivity Targets
+  dailyTarget?: number;
+  weeklyTarget?: number;
+  monthlyTarget?: number;
 }
 
 export interface AppConfig {
@@ -103,6 +112,11 @@ export interface AppConfig {
   // Branding
   appName?: string;
   appLogo?: string; // URL
+
+  // NEW AI & DB CONFIG
+  aiApiKey?: string;
+  aiProvider?: 'google' | 'openai';
+  dbUrl?: string;
 }
 
 export interface Testimonial {
@@ -112,6 +126,30 @@ export interface Testimonial {
   userRole: string; // e.g. "Web Developer"
   content: string;
   date: string;
+}
+
+// --- NEW BLOG TYPES ---
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt?: string;
+  imageUrl?: string;
+  authorId?: string;
+  status: 'draft' | 'published';
+  createdAt: string;
+  updatedAt: string;
+}
+
+// --- NEW STATS TYPES ---
+export interface VisitorStat {
+  id: string;
+  pagePath: string;
+  userAgent: string;
+  referrer?: string;
+  ipAddress?: string;
+  timestamp: string;
 }
 
 // --- NEW CV MATCHER TYPES ---

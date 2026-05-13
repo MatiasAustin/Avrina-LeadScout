@@ -49,6 +49,8 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
   const [newLeadPlatform, setNewLeadPlatform] = useState<Platform>(Platform.Google);
   const [newLeadNotes, setNewLeadNotes] = useState('');
   const [newLeadPainPoints, setNewLeadPainPoints] = useState('');
+  const [newLeadValue, setNewLeadValue] = useState<number>(0);
+  const [newLeadCurrency, setNewLeadCurrency] = useState('USD');
   
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState('');
@@ -93,7 +95,9 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
       dateAdded: new Date().toISOString(),
       status: LeadStatus.NEW,
       notes: newLeadNotes,
-      painPoints: newLeadPainPoints
+      painPoints: newLeadPainPoints,
+      value: newLeadValue,
+      currency: newLeadCurrency
     };
     addLead(lead);
     setIsFormOpen(false);
@@ -105,6 +109,8 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
     setNewLeadUrl('');
     setNewLeadNotes('');
     setNewLeadPainPoints('');
+    setNewLeadValue(0);
+    setNewLeadCurrency('USD');
     setMediaItems([]);
     setPreviews([]);
   };
@@ -172,7 +178,10 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
       acc[lead.status] = (acc[lead.status] || 0) + 1;
       return acc;
     }, {} as Record<LeadStatus, number>);
-    return { total, byStatus };
+    const totalValue = leads
+      .filter(l => l.status === LeadStatus.WON)
+      .reduce((sum, l) => sum + (Number(l.value) || 0), 0);
+    return { total, byStatus, totalValue };
   }, [leads]);
 
   const startRecording = async () => {
@@ -246,7 +255,9 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
         url: editingLead.url,
         notes: editingLead.notes,
         painPoints: editingLead.painPoints,
-        platform: editingLead.platform
+        platform: editingLead.platform,
+        value: editingLead.value,
+        currency: editingLead.currency
       });
       setEditingLead(null);
     }
@@ -417,12 +428,13 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
       </div>
 
       {leads.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {[
             { label: 'Total', val: stats.total, color: 'bg-slate-50 text-slate-800' },
             { label: 'Qualified', val: stats.byStatus[LeadStatus.QUALIFIED] || 0, color: 'bg-blue-50 text-blue-700' },
             { label: 'Contacted', val: stats.byStatus[LeadStatus.CONTACTED] || 0, color: 'bg-yellow-50 text-yellow-700' },
-            { label: 'Won', val: stats.byStatus[LeadStatus.WON] || 0, color: 'bg-green-50 text-green-700' }
+            { label: 'Won', val: stats.byStatus[LeadStatus.WON] || 0, color: 'bg-green-50 text-green-700' },
+            { label: 'Revenue', val: `$${stats.totalValue.toLocaleString()}`, color: 'bg-emerald-50 text-emerald-700' }
           ].map(s => (
             <div key={s.label} className={`${s.color} p-4 rounded-xl border border-white shadow-sm`}>
                <p className="text-[10px] font-bold uppercase opacity-60 mb-1">{s.label}</p>
@@ -454,6 +466,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="font-bold text-slate-800">{lead.name}</h3>
                   <a href={lead.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-slate-400 hover:text-slate-800"><ExternalLink className="w-3.5 h-3.5" /></a>
+                  {lead.value > 0 && <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">+{lead.currency} {lead.value}</span>}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded uppercase">{lead.platform}</span>
@@ -496,11 +509,21 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                   {previews.length > 0 && <div className="flex gap-2 overflow-x-auto pb-2">{previews.map((p, idx) => <div key={idx} className="w-12 h-12 rounded border bg-slate-200 flex-shrink-0 overflow-hidden">{p.type === 'video' ? <Film className="w-full h-full p-2" /> : <img src={p.url} className="w-full h-full object-cover" />}</div>)}<button type="button" onClick={clearMedia} className="text-[10px] underline">Clear</button></div>}
                   <button type="button" onClick={handleScan} disabled={mediaItems.length === 0 || isScanning} className="w-full bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm disabled:opacity-50">{isScanning ? 'Scanning...' : 'AI Scan from Media'}</button>
                </div>
-               <input type="text" required value={newLeadName} onChange={e => setNewLeadName(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Name / Company" />
+               <div className="grid grid-cols-2 gap-3">
+                 <input type="text" required value={newLeadName} onChange={e => setNewLeadName(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Name / Company" />
+                 <select value={newLeadPlatform} onChange={e => setNewLeadPlatform(e.target.value as Platform)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+                    {Object.values(Platform).map(p => <option key={p} value={p}>{p}</option>)}
+                 </select>
+               </div>
                <input type="url" required value={newLeadUrl} onChange={e => setNewLeadUrl(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Profile URL" />
-               <select value={newLeadPlatform} onChange={e => setNewLeadPlatform(e.target.value as Platform)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none">
-                  {Object.values(Platform).map(p => <option key={p} value={p}>{p}</option>)}
-               </select>
+               <div className="grid grid-cols-3 gap-3">
+                 <input type="number" value={newLeadValue} onChange={e => setNewLeadValue(Number(e.target.value))} className="col-span-2 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Value (e.g. 500)" />
+                 <select value={newLeadCurrency} onChange={e => setNewLeadCurrency(e.target.value)} className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+                    <option value="USD">USD</option>
+                    <option value="IDR">IDR</option>
+                    <option value="EUR">EUR</option>
+                 </select>
+               </div>
                <textarea value={newLeadNotes} onChange={e => setNewLeadNotes(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[80px]" placeholder="Bio / Notes" />
                <textarea value={newLeadPainPoints} onChange={e => setNewLeadPainPoints(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-red-600 font-medium" placeholder="Observed Problems" />
                <button type="submit" className="w-full bg-slate-800 text-white font-bold py-3 rounded-xl shadow-lg mt-2">Add to Database</button>
@@ -511,11 +534,19 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
 
       {editingLead && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6"><h3 className="text-xl font-bold">Edit Lead</h3><button onClick={() => setEditingLead(null)}><XCircle className="w-6 h-6 text-slate-300" /></button></div>
             <div className="space-y-4">
               <input type="text" value={editingLead.name} onChange={e => setEditingLead({...editingLead, name: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Name" />
               <input type="url" value={editingLead.url} onChange={e => setEditingLead({...editingLead, url: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="URL" />
+              <div className="grid grid-cols-3 gap-3">
+                 <input type="number" value={editingLead.value || 0} onChange={e => setEditingLead({...editingLead, value: Number(e.target.value)})} className="col-span-2 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Value" />
+                 <select value={editingLead.currency || 'USD'} onChange={e => setEditingLead({...editingLead, currency: e.target.value})} className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+                    <option value="USD">USD</option>
+                    <option value="IDR">IDR</option>
+                    <option value="EUR">EUR</option>
+                 </select>
+               </div>
               <textarea value={editingLead.notes} onChange={e => setEditingLead({...editingLead, notes: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[80px]" placeholder="Bio" />
               <textarea value={editingLead.painPoints} onChange={e => setEditingLead({...editingLead, painPoints: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Pain Points" />
               <button onClick={handleSaveEdit} className="w-full bg-slate-800 text-white font-bold py-3 rounded-xl shadow-lg">Save Changes</button>

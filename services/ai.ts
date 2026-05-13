@@ -2,21 +2,31 @@ import { GoogleGenAI, Type, Schema, GenerateContentResponse } from "@google/gena
 import mammoth from "mammoth";
 import { Platform, SearchStrategy, LeadAnalysis, OutreachDraft, UserProfile, PositioningSuggestion, OutreachTone, OutreachLength, CvAnalysisResult } from "../types";
 
+let moduleApiKey = '';
+
+export const setAiConfig = (key: string) => {
+  moduleApiKey = key;
+};
+
 // Helper to get client
 const getAiClient = () => {
-  // 1. Static call for Vite
-  // @ts-ignore
-  let apiKey = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.VITE_API_KEY : '';
+  let apiKey = moduleApiKey;
   
-  // 2. Fallback for Node/process.env
   if (!apiKey) {
-    try {
-      apiKey = process.env.VITE_API_KEY || process.env.API_KEY || process.env.GEMINI_API_KEY || '';
-    } catch (e) {}
+    // 1. Static call for Vite
+    // @ts-ignore
+    apiKey = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.VITE_API_KEY : '';
+    
+    // 2. Fallback for Node/process.env
+    if (!apiKey) {
+      try {
+        apiKey = process.env.VITE_API_KEY || process.env.API_KEY || process.env.GEMINI_API_KEY || '';
+      } catch (e) {}
+    }
   }
 
   if (!apiKey) {
-    throw new Error("API Key is missing. Please set the VITE_API_KEY environment variable.");
+    throw new Error("AI API Key is missing. Please configure it in the Admin Panel or set VITE_API_KEY.");
   }
   return new GoogleGenAI({ apiKey });
 };

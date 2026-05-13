@@ -32,7 +32,10 @@ const mapSupabaseUser = async (sbUser: any): Promise<User> => {
       createdAt: sbUser.created_at,
       jobTitle: profile?.job_title || '',
       niche: profile?.target_niche || '',
-      bio: profile?.bio || ''
+      bio: profile?.bio || '',
+      dailyTarget: profile?.daily_target || 5,
+      weeklyTarget: profile?.weekly_target || 25,
+      monthlyTarget: profile?.monthly_target || 100
     };
   } catch (e) {
     return {
@@ -286,7 +289,10 @@ export const saveConfig = async (config: AppConfig) => {
     dedication_message: config.dedicationMessage,
     signature: config.signature,
     app_name: config.appName,
-    app_logo: config.appLogo
+    app_logo: config.appLogo,
+    ai_api_key: config.aiApiKey,
+    ai_provider: config.aiProvider,
+    db_url: config.dbUrl
   };
 
   try {

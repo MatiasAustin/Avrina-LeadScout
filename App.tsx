@@ -10,11 +10,15 @@ import Community from './components/Community';
 import SystemStatus from './components/SystemStatus';
 import CvMatcher from './components/CvMatcher';
 import HelpGuide from './components/HelpGuide';
-import { LayoutDashboard, Search, Users, Sparkles, LogOut, Shield, Coffee, AlertTriangle, Loader2, UserCircle, MessageSquare, Phone, Instagram, Linkedin, Megaphone, AlertCircle, Menu, X, Moon, Sun, Heart, Globe, Briefcase, HelpCircle } from 'lucide-react';
+import LandingPage from './components/LandingPage';
+import Blog from './components/Blog';
+import { LayoutDashboard, Search, Users, Sparkles, LogOut, Shield, Coffee, AlertTriangle, Loader2, UserCircle, MessageSquare, Phone, Instagram, Linkedin, Megaphone, AlertCircle, Menu, X, Moon, Sun, Heart, Globe, Briefcase, HelpCircle, BookOpen, Home } from 'lucide-react';
 import { getCurrentUser, logout, getConfig } from './services/auth';
 import { User, AppConfig, Theme, Language } from './types';
 import { getTranslation } from './utils/i18n';
 import { supabase } from './services/supabase';
+import { setAiConfig } from './services/ai';
+import { recordVisitor } from './services/stats';
 
 // Color Palettes Definition
 const THEMES = {
@@ -102,7 +106,7 @@ const LoveBubbles = () => {
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'strategy' | 'leads' | 'community' | 'admin' | 'profile' | 'cvMatcher'>('strategy');
+  const [activeTab, setActiveTab] = useState<'landing' | 'blog' | 'dashboard' | 'strategy' | 'leads' | 'community' | 'admin' | 'profile' | 'cvMatcher' | 'auth'>('landing');
   const [config, setConfig] = useState<AppConfig>({ donationLink: '', appName: 'Avrina LeadScout' });
   const [isRecovering, setIsRecovering] = useState(false);
   
@@ -120,10 +124,14 @@ const App: React.FC = () => {
   useEffect(() => {
     initApp();
 
+    // Record Visitor Stats
+    recordVisitor();
+
     // Listen for PASSWORD_RECOVERY event globally
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         setIsRecovering(true);
+        setActiveTab('auth');
       }
     });
 
@@ -188,9 +196,16 @@ const App: React.FC = () => {
       setJobTitle(currentUser.jobTitle || '');
       setNiche(currentUser.niche || '');
       setBio(currentUser.bio || '');
+      setActiveTab('strategy');
     }
     const appConfig = await getConfig();
     setConfig(appConfig);
+    
+    // Set AI Config if available in DB
+    if (appConfig.aiApiKey) {
+      setAiConfig({ apiKey: appConfig.aiApiKey });
+    }
+
     setLoadingAuth(false);
   };
 
@@ -201,7 +216,7 @@ const App: React.FC = () => {
     setNiche('');
     setBio('');
     setIsRecovering(false);
-    setActiveTab('strategy');
+    setActiveTab('landing');
   };
 
   const handleNicheSelect = (newNiche: string) => {
@@ -219,6 +234,9 @@ const App: React.FC = () => {
 
   const handleConfigUpdate = (newConfig: AppConfig) => {
     setConfig(newConfig);
+    if (newConfig.aiApiKey) {
+       setAiConfig({ apiKey: newConfig.aiApiKey });
+    }
   };
 
   const openDonation = () => {
@@ -261,8 +279,30 @@ const App: React.FC = () => {
     return <div className="min-h-screen flex items-center justify-center bg-slate-50"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
   }
 
-  // Force show AuthScreen if in Recovery mode OR no user
-  if (!user || isRecovering) {
+  // PUBLIC ROUTES (No User Required)
+  if (!user && (activeTab === 'landing' || activeTab === 'blog')) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        {activeTab === 'landing' && (
+          <LandingPage 
+            onStart={() => setActiveTab('auth')} 
+            onViewBlog={() => setActiveTab('blog')}
+          />
+        )}
+        {activeTab === 'blog' && (
+          <div className="max-w-4xl mx-auto p-4 md:p-8">
+             <button onClick={() => setActiveTab('landing')} className="mb-8 flex items-center gap-2 text-slate-500 hover:text-slate-800 transition font-bold">
+               <Home className="w-4 h-4" /> Back Home
+             </button>
+             <Blog />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // AUTH SCREEN
+  if ((!user || isRecovering) && activeTab === 'auth') {
     return (
       <AuthScreen 
         config={config} 
@@ -274,10 +314,17 @@ const App: React.FC = () => {
           setJobTitle(u.jobTitle || '');
           setNiche(u.niche || '');
           setBio(u.bio || '');
-          setIsRecovering(false); // Clear recovery mode on success
+          setIsRecovering(false);
+          setActiveTab('strategy');
         }} 
       />
     );
+  }
+
+  // Ensure unauthenticated users are redirected to landing if they try to access other tabs
+  if (!user) {
+    setActiveTab('landing');
+    return null;
   }
 
   return (
@@ -426,6 +473,7 @@ const App: React.FC = () => {
              <NavItem id="dashboard" label={t('nav_dashboard')} icon={LayoutDashboard} />
              <NavItem id="community" label={t('nav_community')} icon={MessageSquare} />
              <NavItem id="cvMatcher" label="CV Matcher" icon={Briefcase} />
+             <NavItem id="blog" label="Blog" icon={BookOpen} />
 
               <div className="my-2 border-t border-slate-100 pt-2">
                 <NavItem id="profile" label={t('nav_profile')} icon={UserCircle} />
@@ -511,7 +559,7 @@ const App: React.FC = () => {
             {activeTab === 'dashboard' && (
               <div className="animate-fade-in">
                 <h2 className="text-2xl font-bold text-slate-800 mb-6">Performance Overview</h2>
-                <Dashboard />
+                <Dashboard user={user} />
               </div>
             )}
 
@@ -552,6 +600,10 @@ const App: React.FC = () => {
 
             {activeTab === 'cvMatcher' && (
               <CvMatcher language={language} />
+            )}
+
+            {activeTab === 'blog' && (
+              <Blog />
             )}
 
             {activeTab === 'admin' && user.role === 'admin' && (
