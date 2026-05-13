@@ -1,0 +1,1 @@
+INSERT INTO "public"."testimonials" ("id", "user_id", "user_name", "user_role", "content", "created_at") VALUES ('04c6fca8-e0ee-48a8-82c7-e7de8bedd55b', '70cc02c1-c022-4894-9616-735ff48f055e', 'Erisa Avrina', 'Freelancer', '💖❤️💖❤️💖❤️💖❤️', '2025-12-15 15:29:37.361146+00');
