@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import { UploadCloud, Link as LinkIcon, FileText, CheckCircle2, AlertTriangle, XCircle, Search, ArrowRight, Briefcase, RefreshCw, Sparkles, Copy, Check, HelpCircle } from 'lucide-react';
 import { parseResumeFromFile, analyzeCvMatch, restructureCv, tailorResumeToJob } from '../services/ai';
-import { CvAnalysisResult, Language } from '../types';
+import { CvAnalysisResult, Language, User } from '../types';
 import { getTranslation } from '../utils/i18n';
 import HelpGuide from './HelpGuide';
+import { Loader2 } from 'lucide-react';
 
 interface Props {
   language?: Language;
+  user: User;
+  userBio?: string;
+  onBioUpdate: (data: any) => Promise<void>;
 }
 
-const CvMatcher: React.FC<Props> = ({ language = 'en' }) => {
+const CvMatcher: React.FC<Props> = ({ language = 'en', user, userBio = '', onBioUpdate }) => {
   const [cvFile, setCvFile] = useState<File | null>(null);
-  const [cvText, setCvText] = useState<string>('');
+  const [cvText, setCvText] = useState<string>(userBio);
   const [jobInputMode, setJobInputMode] = useState<'url' | 'text'>('text');
   const [jobInput, setJobInput] = useState('');
 
@@ -97,6 +101,19 @@ const CvMatcher: React.FC<Props> = ({ language = 'en' }) => {
 
       const analysis = await analyzeCvMatch(parsedCvText, targetJobText);
       setResult(analysis);
+
+      // Persist the parsed CV text to the user profile if it's new
+      if (parsedCvText && parsedCvText !== userBio) {
+        onBioUpdate({
+          jobTitle: user.jobTitle || "",
+          niche: user.niche || "",
+          bio: parsedCvText,
+          name: user.name,
+          dailyTarget: user.dailyTarget,
+          weeklyTarget: user.weeklyTarget,
+          monthlyTarget: user.monthlyTarget
+        });
+      }
     } catch (e: any) {
       setError(e.message || 'An unexpected error occurred during analysis.');
     } finally {
@@ -234,6 +251,17 @@ const CvMatcher: React.FC<Props> = ({ language = 'en' }) => {
                   <span className="text-xs text-slate-400 mt-1">Ready for analysis</span>
                   <button onClick={handleRemoveFile} className="mt-3 text-xs font-bold text-red-500 hover:text-red-700 hover:underline transition uppercase tracking-widest">
                     Remove file
+                  </button>
+                </div>
+              ) : cvText ? (
+                <div className="flex flex-col items-center text-center">
+                   <div className="bg-indigo-50 p-4 rounded-full mb-3 border border-indigo-100">
+                    <FileText className="w-8 h-8 text-indigo-500" />
+                  </div>
+                  <span className="font-bold text-slate-800 text-sm">Stored Resume Active</span>
+                  <span className="text-xs text-slate-400 mt-1">Using your saved profile bio</span>
+                  <button onClick={() => { setCvText(''); setCvFile(null); }} className="mt-3 text-xs font-bold text-red-500 hover:text-red-700 hover:underline transition uppercase tracking-widest">
+                    Clear stored
                   </button>
                 </div>
               ) : (
@@ -508,10 +536,5 @@ const Trophy = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const Loader2 = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-  </svg>
-);
 
 export default CvMatcher;

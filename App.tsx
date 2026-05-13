@@ -609,8 +609,13 @@ const App: React.FC = () => {
                <Community user={user} onRegisterClick={handleLogout} />
             )}
 
-            {activeTab === 'cvMatcher' && (
-              <CvMatcher language={language} />
+            {activeTab === 'cvMatcher' && user && (
+              <CvMatcher 
+                language={language} 
+                user={user}
+                userBio={bio}
+                onBioUpdate={handleProfileUpdate}
+              />
             )}
 
             {activeTab === 'blog' && (
