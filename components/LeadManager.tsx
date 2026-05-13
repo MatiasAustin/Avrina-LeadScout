@@ -49,9 +49,6 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
   const [newLeadPlatform, setNewLeadPlatform] = useState<Platform>(Platform.Google);
   const [newLeadNotes, setNewLeadNotes] = useState('');
   const [newLeadPainPoints, setNewLeadPainPoints] = useState('');
-  const [newLeadValue, setNewLeadValue] = useState<number>(0);
-  const [newLeadCurrency, setNewLeadCurrency] = useState('USD');
-  const [newLeadDealType, setNewLeadDealType] = useState<'project' | 'retainer'>('project');
   
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState('');
@@ -96,10 +93,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
       dateAdded: new Date().toISOString(),
       status: LeadStatus.NEW,
       notes: newLeadNotes,
-      painPoints: newLeadPainPoints,
-      value: newLeadValue,
-      currency: newLeadCurrency,
-      dealType: newLeadDealType
+      painPoints: newLeadPainPoints
     };
     addLead(lead);
     setIsFormOpen(false);
@@ -335,6 +329,45 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
 
     return (
       <div className="space-y-6 animate-fade-in">
+        {lead.status === LeadStatus.WON && (
+          <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5 space-y-4 shadow-sm animate-fade-in">
+            <div className="flex justify-between items-center">
+              <h4 className="text-xs font-black uppercase text-indigo-700 tracking-widest flex items-center gap-2">
+                <Sparkles className="w-4 h-4" /> Client Revenue Details
+              </h4>
+              <span className="bg-indigo-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Active Deal</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex bg-white border border-indigo-100 rounded-xl overflow-hidden shadow-sm">
+                  <input 
+                    type="number" 
+                    value={lead.value || 0} 
+                    onChange={e => updateLead(lead.id, { value: Number(e.target.value) })} 
+                    className="w-full px-4 py-2.5 bg-transparent outline-none border-r border-indigo-100 text-sm font-bold text-slate-800" 
+                    placeholder="Value" 
+                  />
+                  <select 
+                    value={lead.currency || 'USD'} 
+                    onChange={e => updateLead(lead.id, { currency: e.target.value })} 
+                    className="px-3 py-2.5 bg-transparent outline-none text-sm font-bold text-slate-800"
+                  >
+                      <option value="USD">USD</option>
+                      <option value="IDR">IDR</option>
+                      <option value="EUR">EUR</option>
+                  </select>
+              </div>
+              <select 
+                value={lead.dealType || 'project'} 
+                onChange={e => updateLead(lead.id, { dealType: e.target.value as 'project' | 'retainer' })} 
+                className="w-full px-4 py-2.5 bg-white border border-indigo-100 rounded-xl outline-none text-sm font-bold shadow-sm text-slate-800"
+              >
+                  <option value="project">Project-Based</option>
+                  <option value="retainer">Monthly Retainer</option>
+              </select>
+            </div>
+          </div>
+        )}
+
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
             <h5 className="font-semibold text-slate-700 mb-1">About / Bio</h5>
@@ -521,21 +554,8 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                     {Object.values(Platform).map(p => <option key={p} value={p}>{p}</option>)}
                  </select>
                </div>
-               <input type="url" required value={newLeadUrl} onChange={e => setNewLeadUrl(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Profile URL" />
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                 <div className="flex bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
-                    <input type="number" value={newLeadValue} onChange={e => setNewLeadValue(Number(e.target.value))} className="w-full px-4 py-2.5 bg-transparent outline-none border-r border-slate-200" placeholder="Value" />
-                    <select value={newLeadCurrency} onChange={e => setNewLeadCurrency(e.target.value)} className="px-3 py-2.5 bg-transparent outline-none text-sm font-bold">
-                        <option value="USD">USD</option>
-                        <option value="IDR">IDR</option>
-                        <option value="EUR">EUR</option>
-                    </select>
-                 </div>
-                 <select value={newLeadDealType} onChange={e => setNewLeadDealType(e.target.value as 'project' | 'retainer')} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-bold">
-                    <option value="project">Project-Based</option>
-                    <option value="retainer">Monthly Retainer</option>
-                 </select>
                </div>
+               <input type="url" required value={newLeadUrl} onChange={e => setNewLeadUrl(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Profile URL" />
                <textarea value={newLeadNotes} onChange={e => setNewLeadNotes(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[80px]" placeholder="Bio / Notes" />
                <textarea value={newLeadPainPoints} onChange={e => setNewLeadPainPoints(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-red-600 font-medium" placeholder="Observed Problems" />
                <button type="submit" className="w-full bg-slate-800 text-white font-bold py-3 rounded-xl shadow-lg mt-2">Add to Database</button>
