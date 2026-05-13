@@ -22,8 +22,13 @@ ADD COLUMN IF NOT EXISTS deal_type text,
 ADD COLUMN IF NOT EXISTS analysis jsonb,
 ADD COLUMN IF NOT EXISTS outreach jsonb;
 
--- 3. Update profiles table for productivity targets
+-- 3. Update profiles table
 ALTER TABLE public.profiles
+ADD COLUMN IF NOT EXISTS full_name text,
+ADD COLUMN IF NOT EXISTS job_title text,
+ADD COLUMN IF NOT EXISTS target_niche text,
+ADD COLUMN IF NOT EXISTS bio text,
+ADD COLUMN IF NOT EXISTS role text DEFAULT 'user',
 ADD COLUMN IF NOT EXISTS daily_target integer DEFAULT 5,
 ADD COLUMN IF NOT EXISTS weekly_target integer DEFAULT 25,
 ADD COLUMN IF NOT EXISTS monthly_target integer DEFAULT 100;

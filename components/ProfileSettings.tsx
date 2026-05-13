@@ -32,46 +32,51 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
 
   const t = (key: any) => getTranslation(language as Language, key);
 
-  const handleSave = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsSaving(true);
     setSaveSuccess(false);
     setErrorMsg(null);
-
     try {
-      // 1. Validate Password if provided
+      await updateUserProfile(user.id, { jobTitle, niche, bio, name });
+      onProfileUpdate({ jobTitle, niche, bio });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error: any) {
+      console.error(error);
+      setErrorMsg(error.message || "Failed to update profile.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUpdateSecurity = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (user.role === 'guest') return;
+    
+    setIsSaving(true);
+    setErrorMsg(null);
+    try {
       if (newPassword) {
         if (newPassword !== confirmPassword) {
           throw new Error(t('prof_err_match'));
         }
+        await updatePassword(newPassword);
+        alert(t('prof_pass_success'));
+        setNewPassword('');
+        setConfirmPassword('');
       }
 
-      // 2. Update Profile Table (Name, Job, Niche, Bio)
-      await updateUserProfile(user.id, { jobTitle, niche, bio, name });
-      
-      // 3. Update Auth User (Email, Password) - Supabase Only
-      if (user.role !== 'guest' && user.id !== 'local-admin') {
-        if (email !== user.email) {
-          await updateEmail(email);
-          alert(t('prof_email_hint'));
-        }
-        if (newPassword) {
-          await updatePassword(newPassword);
-          // Explicit notification for password success
-          alert(t('prof_pass_success'));
-        }
+      if (email !== user.email) {
+        await updateEmail(email);
+        alert(t('prof_email_hint'));
       }
       
-      // Update global state in App.tsx
-      onProfileUpdate({ jobTitle, niche, bio });
-      
       setSaveSuccess(true);
-      setNewPassword('');
-      setConfirmPassword('');
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error: any) {
       console.error(error);
-      setErrorMsg(error.message || "Unknown error occurred.");
+      setErrorMsg(error.message || "Failed to update security settings.");
     } finally {
       setIsSaving(false);
     }
@@ -137,95 +142,110 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
           </div>
         )}
 
-        <form onSubmit={handleSave} className="space-y-8">
-          
+        <div className="space-y-8">
           {/* Section 1: Personal & Professional Info */}
-          <div className="space-y-6">
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
-              <div className="relative">
-                <UserCircle className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800 focus:border-slate-800 outline-none transition-all text-sm text-slate-800 shadow-sm"
-                  placeholder="Your Name"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={handleSaveProfile} className="space-y-6">
+            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2 pb-2 border-b border-slate-100">
+               <Briefcase className="w-4 h-4 text-indigo-600" /> Professional Profile
+            </h3>
+            
+            <div className="space-y-6">
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
-                  <Briefcase className="w-3.5 h-3.5" />
-                  Job Title / Role
-                </label>
-                <input
-                  type="text"
-                  value={jobTitle}
-                  onChange={e => setJobTitle(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800 focus:border-slate-800 outline-none transition-all text-sm text-slate-800 shadow-sm"
-                  placeholder="e.g. Web Developer"
-                />
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
+                <div className="relative">
+                  <UserCircle className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800 focus:border-slate-800 outline-none transition-all text-sm text-slate-800 shadow-sm"
+                    placeholder="Your Name"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
-                  <Target className="w-3.5 h-3.5" />
-                  Target Niche
-                </label>
-                <input
-                  type="text"
-                  value={niche}
-                  onChange={e => setNiche(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800 focus:border-slate-800 outline-none transition-all text-sm text-slate-800 shadow-sm"
-                  placeholder="e.g. SaaS, F&B"
-                />
-              </div>
-            </div>
 
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                  <FileText className="w-3.5 h-3.5" />
-                  Professional Bio
-                </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                    <Briefcase className="w-3.5 h-3.5" />
+                    Job Title / Role
+                  </label>
+                  <input
+                    type="text"
+                    value={jobTitle}
+                    onChange={e => setJobTitle(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800 focus:border-slate-800 outline-none transition-all text-sm text-slate-800 shadow-sm"
+                    placeholder="e.g. Web Developer"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                    <Target className="w-3.5 h-3.5" />
+                    Target Niche
+                  </label>
+                  <input
+                    type="text"
+                    value={niche}
+                    onChange={e => setNiche(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800 focus:border-slate-800 outline-none transition-all text-sm text-slate-800 shadow-sm"
+                    placeholder="e.g. SaaS, F&B"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                    <FileText className="w-3.5 h-3.5" />
+                    Professional Bio
+                  </label>
+                  
+                  <input 
+                    type="file" 
+                    accept="image/*,application/pdf,.doc,.docx" 
+                    ref={cvInputRef} 
+                    className="hidden" 
+                    onChange={handleCVUpload}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => cvInputRef.current?.click()}
+                    disabled={isParsingCV}
+                    className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition border border-slate-200"
+                  >
+                    {isParsingCV ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                    Auto-fill
+                  </button>
+                </div>
                 
-                <input 
-                   type="file" 
-                   accept="image/*,application/pdf,.doc,.docx" 
-                   ref={cvInputRef} 
-                   className="hidden" 
-                   onChange={handleCVUpload}
-                 />
-                 <button
-                  type="button"
-                  onClick={() => cvInputRef.current?.click()}
-                  disabled={isParsingCV}
-                  className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition border border-slate-200"
+                <textarea
+                  value={bio}
+                  onChange={e => setBio(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800 focus:border-slate-800 outline-none transition-all text-sm text-slate-800 min-h-[120px] leading-relaxed shadow-sm"
+                  placeholder="Describe your experience and unique skills..."
+                />
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-md active:scale-95 text-sm"
                 >
-                  {isParsingCV ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
-                  Auto-fill
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  Save Profile
                 </button>
               </div>
-              
-              <textarea
-                value={bio}
-                onChange={e => setBio(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800 focus:border-slate-800 outline-none transition-all text-sm text-slate-800 min-h-[120px] leading-relaxed shadow-sm"
-                placeholder="Describe your experience and unique skills..."
-              />
             </div>
-          </div>
+          </form>
 
           {/* Section 2: Account Security */}
-          <div className="pt-8 border-t border-slate-100 space-y-6">
-            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4" />
-              {t('prof_section_account')}
+          <form onSubmit={handleUpdateSecurity} className="pt-10 border-t border-slate-200 space-y-6">
+            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2 pb-2 border-b border-slate-100">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" /> Account Security
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t('prof_email_label')}</label>
                 <div className="relative">
@@ -272,26 +292,27 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
                 </div>
               </div>
             </div>
-            {user.role !== 'guest' && <p className="text-[10px] text-slate-400">{t('prof_pass_hint')}</p>}
-          </div>
 
-          <div className="pt-8 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-end gap-3">
-             {saveSuccess && (
-               <span className="text-green-600 text-sm font-bold flex items-center justify-center sm:justify-start gap-1 animate-fade-in">
-                 <CheckCircle className="w-4 h-4" />
-                 {t('prof_success')}
-               </span>
-             )}
-             <button
-              type="submit"
-              disabled={isSaving}
-              className="bg-slate-800 hover:bg-slate-900 text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-xl active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 w-full sm:w-auto"
-            >
-              {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-              Save All Changes
-            </button>
-          </div>
-        </form>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+              <p className="text-[10px] text-slate-400 italic">Leave password blank if you don't want to change it.</p>
+              <button
+                type="submit"
+                disabled={isSaving || user.role === 'guest'}
+                className="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-md active:scale-95 text-sm disabled:opacity-50"
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                Update Security
+              </button>
+            </div>
+          </form>
+
+          {saveSuccess && (
+            <div className="flex items-center justify-center gap-2 bg-green-50 text-green-700 py-3 rounded-xl border border-green-100 animate-fade-in shadow-sm">
+              <CheckCircle className="w-4 h-4" />
+              <span className="text-sm font-bold">{t('prof_success')}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* DANGER ZONE */}
