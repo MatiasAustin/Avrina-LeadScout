@@ -346,7 +346,7 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
                       <td className="px-6 py-4 font-bold text-slate-800">{user.name}</td>
                       <td className="px-6 py-4">{user.email}</td>
                       <td className="px-6 py-4"><span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>{user.role}</span></td>
-                      <td className="px-6 py-4 text-right"><button onClick={() => handleResetPasswordEmail(user.email)} className="text-slate-400 hover:text-slate-900 transition"><KeyRound className="w-4 h-4" /></button></td>
+                      <td className="px-6 py-4 text-right"><button onClick={() => sendPasswordReset(user.email)} className="text-slate-400 hover:text-slate-900 transition"><KeyRound className="w-4 h-4" /></button></td>
                     </tr>
                   ))}
                 </tbody>

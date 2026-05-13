@@ -18,7 +18,7 @@ import { User, AppConfig, Theme, Language } from './types';
 import { getTranslation } from './utils/i18n';
 import { supabase } from './services/supabase';
 import { setAiConfig } from './services/ai';
-import { recordVisitor } from './services/stats';
+import { trackVisitor } from './services/stats';
 
 // Color Palettes Definition
 const THEMES = {
@@ -125,7 +125,7 @@ const App: React.FC = () => {
     initApp();
 
     // Record Visitor Stats
-    recordVisitor();
+    trackVisitor('/');
 
     // Listen for PASSWORD_RECOVERY event globally
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
@@ -186,6 +186,8 @@ const App: React.FC = () => {
     localStorage.setItem('leadscout_lang', lang);
   };
 
+
+
   const t = (key: any) => getTranslation(language, key);
 
   const initApp = async () => {
@@ -203,7 +205,7 @@ const App: React.FC = () => {
     
     // Set AI Config if available in DB
     if (appConfig.aiApiKey) {
-      setAiConfig({ apiKey: appConfig.aiApiKey });
+      setAiConfig(appConfig.aiApiKey);
     }
 
     setLoadingAuth(false);
@@ -235,7 +237,7 @@ const App: React.FC = () => {
   const handleConfigUpdate = (newConfig: AppConfig) => {
     setConfig(newConfig);
     if (newConfig.aiApiKey) {
-       setAiConfig({ apiKey: newConfig.aiApiKey });
+       setAiConfig(newConfig.aiApiKey);
     }
   };
 
@@ -285,7 +287,8 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-slate-50">
         {activeTab === 'landing' && (
           <LandingPage 
-            onStart={() => setActiveTab('auth')} 
+            config={config}
+            onGetStarted={() => setActiveTab('auth')} 
             onViewBlog={() => setActiveTab('blog')}
           />
         )}
@@ -294,7 +297,7 @@ const App: React.FC = () => {
              <button onClick={() => setActiveTab('landing')} className="mb-8 flex items-center gap-2 text-slate-500 hover:text-slate-800 transition font-bold">
                <Home className="w-4 h-4" /> Back Home
              </button>
-             <Blog />
+             <Blog onBack={() => setActiveTab('landing')} />
           </div>
         )}
       </div>
@@ -603,7 +606,7 @@ const App: React.FC = () => {
             )}
 
             {activeTab === 'blog' && (
-              <Blog />
+              <Blog onBack={() => setActiveTab('strategy')} />
             )}
 
             {activeTab === 'admin' && user.role === 'admin' && (
