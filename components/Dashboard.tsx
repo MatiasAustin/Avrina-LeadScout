@@ -34,7 +34,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
           </div>
           <span className="text-slate-800">{current} / {target}</span>
         </div>
-        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden shadow-inner">
+        <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden shadow-inner">
           <div className={`h-full rounded-full transition-all duration-700 ease-out ${color}`} style={{ width: `${percent}%` }}></div>
         </div>
       </div>
@@ -65,9 +65,9 @@ const Dashboard: React.FC<Props> = ({ user }) => {
           <span className="text-4xl font-black text-slate-800">${totalRevenue.toLocaleString()}</span>
         </div>
 
-        <div className="bg-slate-50 p-6 rounded-2xl shadow-sm border border-slate-200 h-full relative overflow-hidden">
-          <h4 className="absolute top-4 left-4 text-[10px] font-bold text-slate-400 uppercase z-10">Pipeline</h4>
-          <div className="w-full h-full">
+        <div className="bg-slate-50 p-6 rounded-2xl shadow-sm border border-slate-200 min-h-[160px] flex flex-col">
+          <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4">Pipeline</h4>
+          <div className="w-full flex-1 min-h-[100px]">
               {data.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -95,7 +95,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
         </div>
       </div>
 
-      <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+      <div className="bg-slate-50 p-8 rounded-3xl border border-slate-200 shadow-sm">
         <h3 className="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
            <Target className="w-5 h-5 text-indigo-600" />
            Productivity Targets

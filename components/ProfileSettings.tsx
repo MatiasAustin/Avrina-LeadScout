@@ -169,7 +169,7 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
                     type="text"
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800 focus:border-slate-800 outline-none transition-all text-sm text-slate-800 shadow-sm"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-slate-100 focus:ring-2 focus:ring-slate-800 focus:border-slate-800 outline-none transition-all text-sm text-slate-800 shadow-sm"
                     placeholder="Your Name"
                   />
                 </div>
@@ -302,7 +302,7 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     disabled={user.role === 'guest'}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800 focus:border-slate-800 outline-none transition-all text-sm text-slate-800 disabled:opacity-50 shadow-sm"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-slate-100 focus:ring-2 focus:ring-slate-800 focus:border-slate-800 outline-none transition-all text-sm text-slate-800 disabled:opacity-50 shadow-sm"
                     placeholder="you@example.com"
                   />
                 </div>
@@ -318,7 +318,7 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
                     disabled={user.role === 'guest'}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-800 focus:border-slate-800 outline-none transition-all text-sm text-slate-800 disabled:opacity-50 shadow-sm"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-slate-100 focus:ring-2 focus:ring-slate-800 focus:border-slate-800 outline-none transition-all text-sm text-slate-800 disabled:opacity-50 shadow-sm"
                     placeholder="••••••••"
                   />
                 </div>
@@ -377,7 +377,7 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
             type="button"
             onClick={handleDeleteAccount}
             disabled={isDeleting}
-            className="bg-white border border-red-200 text-red-600 hover:bg-red-600 hover:text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm active:scale-95"
+            className="bg-slate-50 border border-red-200 text-red-600 hover:bg-red-600 hover:text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm active:scale-95"
           >
             {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
             {isDeleting ? "Deleting..." : "Delete Permanently"}

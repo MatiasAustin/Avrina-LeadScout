@@ -115,7 +115,7 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config, language, setLangu
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4">
       <div className="absolute top-4 right-4 z-10">
-         <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
+         <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200 shadow-sm">
              <button 
                onClick={() => setLanguage('en')}
                className={`text-xs font-bold px-3 py-1.5 rounded ${language === 'en' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-100'}`}
