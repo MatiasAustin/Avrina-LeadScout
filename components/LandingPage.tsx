@@ -103,7 +103,7 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
           
           <div className="mt-16 relative animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <div className="absolute -inset-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-10"></div>
-            <div className="bg-white border border-slate-200 rounded-3xl shadow-2xl p-2 md:p-4 overflow-hidden">
+            <div className="bg-slate-50 border border-slate-200 rounded-3xl shadow-2xl p-2 md:p-4 overflow-hidden">
                <img 
                  src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=2426" 
                  alt="App Preview" 
@@ -115,7 +115,7 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
       </header>
 
       {/* Stats/Logos */}
-      <section className="py-12 border-y border-slate-200 bg-white">
+      <section className="py-12 border-y border-slate-200 bg-slate-50">
         <div className="max-w-7xl mx-auto px-6 flex flex-wrap justify-center gap-8 md:gap-16 items-center opacity-50 grayscale">
           <div className="flex items-center gap-2 font-bold text-xl"><Globe className="w-6 h-6" /> GLOBAL</div>
           <div className="flex items-center gap-2 font-bold text-xl"><Target className="w-6 h-6" /> TARGETED</div>
@@ -125,7 +125,7 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
       </section>
 
       {/* Features Grid */}
-      <section id="features" className="py-24 bg-white relative overflow-hidden">
+      <section id="features" className="py-24 bg-slate-50 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">Everything you need to grow.</h2>
@@ -134,8 +134,8 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((f, i) => (
-              <div key={i} className="p-8 rounded-3xl bg-slate-50 border border-slate-100 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-50 transition group">
-                <div className="mb-6 p-3 bg-white rounded-2xl w-fit shadow-sm group-hover:scale-110 transition">
+              <div key={i} className="p-8 rounded-3xl bg-slate-100 border border-slate-100 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-50 transition group">
+                <div className="mb-6 p-3 bg-slate-50 rounded-2xl w-fit shadow-sm group-hover:scale-110 transition">
                   {f.icon}
                 </div>
                 <h3 className="text-lg font-bold mb-3 text-slate-800">{f.title}</h3>
@@ -179,7 +179,7 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
                 </div>
               </div>
 
-              <div className="mt-10 p-6 bg-white rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
+              <div className="mt-10 p-6 bg-slate-100 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600">
                   <TrendingUp className="w-6 h-6" />
                 </div>
@@ -191,7 +191,7 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
             </div>
 
             <div className="relative">
-              <div className="bg-white rounded-[2rem] shadow-2xl p-4 border border-slate-200 overflow-hidden">
+              <div className="bg-slate-50 rounded-[2rem] shadow-2xl p-4 border border-slate-200 overflow-hidden">
                 <div className="bg-slate-50 rounded-xl p-6 border border-slate-100">
                   <div className="flex justify-between items-center mb-6">
                     <h5 className="font-bold">Weekly Performance</h5>
@@ -209,7 +209,7 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
                           <span>{item.l}</span>
                           <span>{item.v}</span>
                         </div>
-                        <div className="w-full bg-white h-2 rounded-full overflow-hidden border border-slate-200">
+                        <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden border border-slate-200">
                           <div className="bg-indigo-600 h-full rounded-full" style={{ width: `${item.p}%` }}></div>
                         </div>
                       </div>
@@ -240,7 +240,7 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
               <button 
                 onClick={onGetStarted}
-                className="w-full sm:w-auto bg-white text-indigo-600 px-10 py-5 rounded-2xl font-black text-lg hover:bg-slate-50 transition shadow-lg active:scale-95"
+                className="w-full sm:w-auto bg-slate-50 text-indigo-600 px-10 py-5 rounded-2xl font-black text-lg hover:bg-slate-100 transition shadow-lg active:scale-95"
               >
                 Create Free Account
               </button>
