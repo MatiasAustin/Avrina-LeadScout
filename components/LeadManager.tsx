@@ -333,7 +333,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
               <h4 className="text-xs font-black uppercase text-indigo-700 tracking-widest flex items-center gap-2">
                 <Sparkles className="w-4 h-4" /> Client Revenue Details
               </h4>
-              <span className="bg-indigo-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Active Deal</span>
+              <span className="bg-indigo-600 text-slate-50 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Active Deal</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex bg-slate-50 border border-indigo-100 rounded-xl overflow-hidden shadow-sm">
@@ -434,7 +434,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                     <button 
                       onClick={handleGenerateOutreach} 
                       disabled={generating} 
-                      className="flex-1 bg-slate-800 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition text-xs font-bold shadow-sm"
+                      className="flex-1 bg-slate-800 text-slate-50 py-2 rounded-lg flex items-center justify-center gap-2 transition text-xs font-bold shadow-sm"
                     >
                       {generating ? <Loader2 className="w-3 h-3 animate-spin" /> : <MessageCircle className="w-3 h-3" />}
                       {lead.outreach ? "Regenerate" : "Draft"}
@@ -476,7 +476,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
             {lead.outreach && (
               <form onSubmit={handleRefineOutreach} className="mt-4 flex gap-2 items-center bg-slate-50 p-1 rounded-lg border border-slate-200">
                 <input type="text" value={refineText} onChange={e => setRefineText(e.target.value)} placeholder="Refine message..." className="flex-1 bg-transparent border-none outline-none text-xs px-2" />
-                <button type="submit" disabled={!refineText || isRefining} className="p-2 bg-slate-800 text-white rounded transition">
+                <button type="submit" disabled={!refineText || isRefining} className="p-2 bg-slate-800 text-slate-50 rounded transition">
                   {isRefining ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
                 </button>
               </form>
@@ -498,7 +498,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
           <input type="file" ref={cvProfileInputRef} className="hidden" accept=".pdf,.doc,.docx" onChange={handleCVProfileUpload} />
           <button onClick={() => cvProfileInputRef.current?.click()} className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg" title="Sync Profile CV"><FileText className="w-5 h-5" /></button>
           <button onClick={() => setIsHelpOpen(true)} className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg" title="Guide"><HelpCircle className="w-5 h-5" /></button>
-          <button onClick={() => setIsFormOpen(true)} className="bg-slate-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-bold shadow-sm"><Plus className="w-4 h-4" /> {t('leads_btn_add')}</button>
+          <button onClick={() => setIsFormOpen(true)} className="bg-slate-800 text-slate-50 px-4 py-2 rounded-lg flex items-center gap-2 font-bold shadow-sm"><Plus className="w-4 h-4" /> {t('leads_btn_add')}</button>
         </div>
       </div>
 
@@ -526,7 +526,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
         </div>
         <div className="flex bg-slate-100 p-1 rounded-xl overflow-x-auto whitespace-nowrap custom-scrollbar">
            {(['ALL', ...Object.values(LeadStatus)] as const).map(s => (
-             <button key={s} onClick={() => setStatusFilter(s)} className={`px-4 py-1.5 text-[10px] font-black rounded-lg transition ${statusFilter === s ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}>{s}</button>
+              <button key={s} onClick={() => setStatusFilter(s)} className={`px-4 py-1.5 text-[10px] font-black rounded-lg transition ${statusFilter === s ? 'bg-slate-800 shadow-sm text-slate-50' : 'text-slate-400'}`}>{s}</button>
            ))}
         </div>
       </div>
@@ -585,7 +585,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                     </button>
                   </div>
                   {previews.length > 0 && <div className="flex gap-2 overflow-x-auto pb-2">{previews.map((p, idx) => <div key={idx} className="w-12 h-12 rounded border bg-slate-200 flex-shrink-0 overflow-hidden">{p.type === 'video' ? <Film className="w-full h-full p-2" /> : <img src={p.url} className="w-full h-full object-cover" />}</div>)}<button type="button" onClick={clearMedia} className="text-[10px] underline">Clear</button></div>}
-                  <button type="button" onClick={handleScan} disabled={mediaItems.length === 0 || isScanning} className="w-full bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm disabled:opacity-50">{isScanning ? 'Scanning...' : 'AI Scan from Media'}</button>
+                  <button type="button" onClick={handleScan} disabled={mediaItems.length === 0 || isScanning} className="w-full bg-slate-800 text-slate-50 font-bold py-2.5 rounded-xl text-sm disabled:opacity-50">{isScanning ? 'Scanning...' : 'AI Scan from Media'}</button>
                </div>
                <div className="grid grid-cols-2 gap-3">
                  <input type="text" required value={newLeadName} onChange={e => setNewLeadName(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Name / Company" />
@@ -596,7 +596,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                <input type="url" required value={newLeadUrl} onChange={e => setNewLeadUrl(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Profile URL" />
                <textarea value={newLeadNotes} onChange={e => setNewLeadNotes(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[80px]" placeholder="Bio / Notes" />
                <textarea value={newLeadPainPoints} onChange={e => setNewLeadPainPoints(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-red-600 font-medium" placeholder="Observed Problems" />
-               <button type="submit" className="w-full bg-slate-800 text-white font-bold py-3 rounded-xl shadow-lg mt-2">Add to Database</button>
+               <button type="submit" className="w-full bg-slate-800 text-slate-50 font-bold py-3 rounded-xl shadow-lg mt-2">Add to Database</button>
             </form>
           </div>
         </div>
@@ -612,7 +612,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
               <div className={`p-4 rounded-xl space-y-4 border transition-all ${editingLead.status === LeadStatus.WON ? 'bg-indigo-50/50 border-indigo-200' : 'bg-slate-50 border-slate-200'}`}>
                 <div className="flex justify-between items-center">
                   <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{editingLead.status === LeadStatus.WON ? 'Financial Details (Client)' : 'Financial Potential'}</h4>
-                  {editingLead.status === LeadStatus.WON && <span className="bg-indigo-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Deal Closed</span>}
+                  {editingLead.status === LeadStatus.WON && <span className="bg-indigo-600 text-slate-50 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Deal Closed</span>}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="flex bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
@@ -632,7 +632,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
 
               <textarea value={editingLead.notes} onChange={e => setEditingLead({...editingLead, notes: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[100px] text-sm" placeholder="Bio / Client Context" />
               <textarea value={editingLead.painPoints} onChange={e => setEditingLead({...editingLead, painPoints: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-red-600 font-medium text-sm" placeholder="Client Pain Points / Solved Problems" />
-              <button onClick={handleSaveEdit} className="w-full bg-slate-800 text-white font-bold py-3 rounded-xl shadow-lg">Save Changes</button>
+              <button onClick={handleSaveEdit} className="w-full bg-slate-800 text-slate-50 font-bold py-3 rounded-xl shadow-lg">Save Changes</button>
             </div>
           </div>
         </div>

@@ -153,6 +153,11 @@ export interface VisitorStat {
   timestamp: string;
 }
 
+export interface VisitorSummary {
+  total: number;
+  byPage: Record<string, number>;
+}
+
 // --- NEW CV MATCHER TYPES ---
 export interface CvAnalysisResult {
   matchScore: number;

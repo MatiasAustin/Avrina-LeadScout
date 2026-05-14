@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from "./supabase";
-import { VisitorStat } from "../types";
+import { VisitorStat, VisitorSummary } from "../types";
 
 export const trackVisitor = async (pagePath: string) => {
   if (!isSupabaseConfigured) return;
@@ -37,8 +37,8 @@ export const getVisitorStats = async () => {
   })) as VisitorStat[];
 };
 
-export const getVisitorSummary = async () => {
-  if (!isSupabaseConfigured) return { total: 0, byPage: {} as Record<string, number> };
+export const getVisitorSummary = async (): Promise<VisitorSummary> => {
+  if (!isSupabaseConfigured) return { total: 0, byPage: {} };
 
   const { data, error } = await supabase
     .from('visitor_stats')
@@ -46,7 +46,7 @@ export const getVisitorSummary = async () => {
 
   if (error) throw error;
 
-  const summary = data.reduce((acc: any, curr: any) => {
+  const summary = data.reduce((acc: VisitorSummary, curr: any) => {
     acc.total = (acc.total || 0) + 1;
     acc.byPage[curr.page_path] = (acc.byPage[curr.page_path] || 0) + 1;
     return acc;

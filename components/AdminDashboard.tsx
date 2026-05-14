@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getAllUsers, getConfig, saveConfig, sendPasswordReset } from '../services/auth';
-import { User, AppConfig, BlogPost, VisitorStat } from '../types';
+import { User, AppConfig, BlogPost, VisitorStat, VisitorSummary } from '../types';
 import { Save, ShieldAlert, Users, DollarSign, KeyRound, Info, Loader2, ExternalLink, Coffee, Heart, Zap, Megaphone, Share2, Check, PenTool, Type, Image, AlertTriangle, Upload, X, BarChart3, Newspaper, Plus, Trash2, Eye, LayoutDashboard, Database, Brain } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts';
 import { getVisitorStats, getVisitorSummary } from '../services/stats';
@@ -35,7 +35,7 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
 
   // Stats State
   const [stats, setStats] = useState<VisitorStat[]>([]);
-  const [statsSummary, setStatsSummary] = useState({ total: 0, byPage: {} as Record<string, number> });
+  const [statsSummary, setStatsSummary] = useState<VisitorSummary>({ total: 0, byPage: {} });
 
   // Blog State
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
@@ -237,7 +237,7 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
             </div>
 
             <div className="pt-6 border-t border-slate-100 flex justify-end">
-              <button type="submit" className={`px-10 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition ${configSaved ? 'bg-green-600 text-white' : 'bg-slate-900 text-white active:scale-95'}`}>
+              <button type="submit" className={`px-10 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition ${configSaved ? 'bg-green-600 text-slate-50' : 'bg-slate-900 text-slate-50 active:scale-95'}`}>
                 {configSaved ? <><Check className="w-5 h-5" /> Saved</> : <><Save className="w-5 h-5" /> Save Changes</>}
               </button>
             </div>
@@ -253,7 +253,7 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
                 </div>
                 <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 text-center">
                    <p className="text-xs font-bold text-slate-400 uppercase mb-2">Top Page</p>
-                   <p className="text-xl font-black text-slate-800 truncate">{Object.entries(statsSummary.byPage).sort((a,b) => b[1]-a[1])[0]?.[0] || 'N/A'}</p>
+                   <p className="text-xl font-black text-slate-800 truncate">{Object.entries(statsSummary.byPage).sort((a,b) => (b[1] as number) - (a[1] as number))[0]?.[0] || 'N/A'}</p>
                 </div>
                 <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 text-center">
                    <p className="text-xs font-bold text-slate-400 uppercase mb-2">Unique IPs</p>

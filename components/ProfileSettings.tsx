@@ -277,7 +277,7 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-md active:scale-95 text-sm"
+                  className="bg-slate-800 hover:bg-slate-900 text-slate-50 px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-md active:scale-95 text-sm"
                 >
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Save Profile
@@ -345,7 +345,7 @@ const ProfileSettings: React.FC<Props> = ({ user, onProfileUpdate, language = 'e
               <button
                 type="submit"
                 disabled={isSaving || user.role === 'guest'}
-                className="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-md active:scale-95 text-sm disabled:opacity-50"
+                className="bg-slate-800 hover:bg-slate-900 text-slate-50 px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-md active:scale-95 text-sm disabled:opacity-50"
               >
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 Update Security

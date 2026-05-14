@@ -476,7 +476,7 @@ const StrategyGenerator: React.FC<Props> = ({
                     onClick={() => setPlatform(p)}
                     className={`text-[10px] font-medium px-2 py-1 rounded-full border transition-all active:scale-95 ${
                       platform === p 
-                        ? 'bg-slate-800 text-white border-slate-800 shadow-sm' 
+                        ? 'bg-slate-800 text-slate-50 border-slate-800 shadow-sm' 
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-400 hover:bg-slate-100'
                     }`}
                   >
@@ -629,7 +629,7 @@ const StrategyGenerator: React.FC<Props> = ({
         <button
           onClick={handleGenerate}
           disabled={isLoading || (!globalJobTitle && !customJobTitle)}
-          className="mt-6 w-full bg-slate-800 hover:bg-slate-900 disabled:bg-slate-300 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg transform active:scale-[0.99]"
+          className="mt-6 w-full bg-slate-800 hover:bg-slate-900 disabled:bg-slate-300 text-slate-50 font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg transform active:scale-[0.99]"
         >
           {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
           {t('strat_btn_generate')}
@@ -721,7 +721,7 @@ const StrategyGenerator: React.FC<Props> = ({
                         href={getSearchUrl(platform, k)}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded text-xs font-medium transition ml-1"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-slate-50 rounded text-xs font-medium transition ml-1"
                         title={`Open in ${platform}`}
                       >
                          Search <ExternalLink className="w-3 h-3" />

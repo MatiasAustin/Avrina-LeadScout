@@ -45,10 +45,10 @@ const Blog: React.FC<Props> = ({ onBack }) => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       
       {/* Blog Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+      <nav className="fixed top-0 w-full z-50 bg-slate-50/80 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <button 
             onClick={selectedPost ? () => setSelectedPost(null) : onBack}
@@ -109,10 +109,10 @@ const Blog: React.FC<Props> = ({ onBack }) => {
 
                 <div className="mt-16 pt-10 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-8">
                   <div className="flex items-center gap-4">
-                    <button className="p-3 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition shadow-sm"><Facebook className="w-5 h-5 text-blue-600" /></button>
-                    <button className="p-3 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition shadow-sm"><Twitter className="w-5 h-5 text-sky-500" /></button>
-                    <button className="p-3 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition shadow-sm"><Linkedin className="w-5 h-5 text-indigo-700" /></button>
-                    <button className="p-3 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition shadow-sm"><Share2 className="w-5 h-5 text-slate-400" /></button>
+                    <button className="p-3 bg-slate-50 border border-slate-200 rounded-2xl hover:bg-slate-100 transition shadow-sm"><Facebook className="w-5 h-5 text-blue-600" /></button>
+                    <button className="p-3 bg-slate-50 border border-slate-200 rounded-2xl hover:bg-slate-100 transition shadow-sm"><Twitter className="w-5 h-5 text-sky-500" /></button>
+                    <button className="p-3 bg-slate-50 border border-slate-200 rounded-2xl hover:bg-slate-100 transition shadow-sm"><Linkedin className="w-5 h-5 text-indigo-700" /></button>
+                    <button className="p-3 bg-slate-50 border border-slate-200 rounded-2xl hover:bg-slate-100 transition shadow-sm"><Share2 className="w-5 h-5 text-slate-400" /></button>
                   </div>
                   <button 
                     onClick={() => setSelectedPost(null)}
@@ -139,7 +139,7 @@ const Blog: React.FC<Props> = ({ onBack }) => {
                   <div 
                     key={post.id} 
                     onClick={() => handlePostClick(post)}
-                    className="group bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer"
+                    className="group bg-slate-50 rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer"
                   >
                     {post.imageUrl && (
                       <div className="h-56 overflow-hidden">

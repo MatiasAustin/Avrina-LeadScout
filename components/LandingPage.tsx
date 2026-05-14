@@ -58,7 +58,7 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
             <button onClick={onViewBlog} className="hover:text-indigo-600 transition">Blog</button>
             <button 
               onClick={onGetStarted}
-              className="bg-slate-900 text-white px-5 py-2 rounded-full hover:bg-slate-800 transition shadow-sm"
+              className="bg-slate-900 text-slate-50 px-5 py-2 rounded-full hover:bg-slate-800 transition shadow-sm"
             >
               Sign In
             </button>
@@ -88,14 +88,14 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style={{ animationDelay: '0.3s' }}>
             <button 
               onClick={onGetStarted}
-              className="group w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-slate-800 transition shadow-xl hover:shadow-indigo-200/50 flex items-center justify-center gap-2"
+              className="group w-full sm:w-auto bg-slate-900 text-slate-50 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-slate-800 transition shadow-xl hover:shadow-indigo-200/50 flex items-center justify-center gap-2"
             >
               Start Hunting Now
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
             </button>
             <button 
               onClick={onGetStarted}
-              className="w-full sm:w-auto bg-white border border-slate-200 text-slate-600 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-slate-50 transition"
+              className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-600 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-slate-100 transition"
             >
               Try Guest Mode
             </button>
@@ -128,7 +128,7 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
       <section id="features" className="py-24 bg-slate-50 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">Everything you need to grow.</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-slate-800 mb-4">Everything you need to grow.</h2>
             <p className="text-slate-500 max-w-xl mx-auto">One platform, unlimited potential. Stop manual searching and start intelligent hunting.</p>
           </div>
 
@@ -217,7 +217,7 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
                   </div>
                 </div>
               </div>
-              <div className="absolute -bottom-6 -left-6 bg-slate-900 text-white p-6 rounded-3xl shadow-2xl max-w-[200px] animate-bounce-slow">
+              <div className="absolute -bottom-6 -left-6 bg-slate-800 text-slate-50 p-6 rounded-3xl shadow-2xl max-w-[200px] animate-bounce-slow border border-slate-700">
                  <MousePointer2 className="w-8 h-8 mb-4 text-indigo-400" />
                  <p className="text-xs font-medium opacity-80 leading-relaxed">"This app changed my freelancing game forever."</p>
                  <p className="text-[10px] font-bold mt-2 text-indigo-400">@matiasaustin</p>
@@ -234,13 +234,13 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
             <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-indigo-400/20 rounded-full blur-3xl"></div>
             
-            <h2 className="text-4xl md:text-5xl font-black mb-8 relative z-10">Ready to find your next <br /> big client?</h2>
+            <h2 className="text-4xl md:text-5xl font-black mb-8 relative z-10 text-slate-50">Ready to find your next <br /> big client?</h2>
             <p className="text-indigo-100 mb-10 text-lg max-w-xl mx-auto relative z-10">Join 1,000+ freelancers who are already using Avrina LeadScout to automate their business growth.</p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
               <button 
                 onClick={onGetStarted}
-                className="w-full sm:w-auto bg-slate-50 text-indigo-600 px-10 py-5 rounded-2xl font-black text-lg hover:bg-slate-100 transition shadow-lg active:scale-95"
+                className="w-full sm:w-auto bg-slate-900 text-slate-50 px-10 py-5 rounded-2xl font-black text-lg hover:bg-slate-800 transition shadow-lg active:scale-95"
               >
                 Create Free Account
               </button>

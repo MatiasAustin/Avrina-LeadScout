@@ -38,7 +38,7 @@ const HelpGuide: React.FC<Props> = ({ isOpen, onClose, language, initialTab = 'l
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col md:flex-row max-h-[85vh]">
+      <div className="bg-slate-50 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col md:flex-row max-h-[85vh] border border-slate-200">
         
         {/* Sidebar / Tabs */}
         <div className="w-full md:w-64 bg-slate-50 p-6 md:border-r border-slate-200">
@@ -51,7 +51,7 @@ const HelpGuide: React.FC<Props> = ({ isOpen, onClose, language, initialTab = 'l
             <button
               onClick={() => setActiveTab('leads')}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${
-                activeTab === 'leads' ? 'bg-white shadow-sm text-slate-900 border border-slate-200' : 'text-slate-500 hover:text-slate-800'
+                activeTab === 'leads' ? 'bg-slate-800 shadow-sm text-slate-50' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               {t('guide_leads_tab')}
@@ -60,7 +60,7 @@ const HelpGuide: React.FC<Props> = ({ isOpen, onClose, language, initialTab = 'l
             <button
               onClick={() => setActiveTab('cv')}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${
-                activeTab === 'cv' ? 'bg-white shadow-sm text-slate-900 border border-slate-200' : 'text-slate-500 hover:text-slate-800'
+                activeTab === 'cv' ? 'bg-slate-800 shadow-sm text-slate-50' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               {t('guide_cv_tab')}
@@ -81,7 +81,7 @@ const HelpGuide: React.FC<Props> = ({ isOpen, onClose, language, initialTab = 'l
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 flex flex-col relative bg-white overflow-hidden">
+        <div className="flex-1 flex flex-col relative bg-slate-50 overflow-hidden">
           <button 
             onClick={onClose}
             className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition z-10"
@@ -109,7 +109,7 @@ const HelpGuide: React.FC<Props> = ({ isOpen, onClose, language, initialTab = 'l
             <div className="mt-12 pt-8 border-t border-slate-100 flex justify-center">
                <button
                  onClick={onClose}
-                 className="px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold shadow-lg transition active:scale-95 text-sm"
+                 className="px-8 py-3 bg-slate-900 hover:bg-slate-800 text-slate-50 rounded-2xl font-bold shadow-lg transition active:scale-95 text-sm"
                >
                  {language === 'id' ? "Saya Mengerti" : "Got it, thanks!"}
                </button>

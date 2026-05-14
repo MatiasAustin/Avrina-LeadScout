@@ -231,9 +231,9 @@ const CvMatcher: React.FC<Props> = ({ language = 'en', user, userBio = '', onBio
         <div className="space-y-6">
 
           {/* Step 1: CV Upload */}
-          <div className="bg-white p-5 md:p-8 rounded-2xl shadow-sm border border-slate-200 transition-all hover:shadow-md">
+          <div className="bg-slate-50 p-5 md:p-8 rounded-2xl shadow-sm border border-slate-200 transition-all hover:shadow-md">
             <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 text-sm md:text-base">
-              <span className="bg-indigo-600 text-white w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-black flex-shrink-0 shadow-sm">1</span>
+              <span className="bg-indigo-600 text-slate-50 w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-black flex-shrink-0 shadow-sm">1</span>
               {t('cv_step_1')}
               {cvText && !cvFile && (
                 <span className="ml-auto text-[10px] bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">{t('cv_parsed')}</span>
@@ -277,9 +277,9 @@ const CvMatcher: React.FC<Props> = ({ language = 'en', user, userBio = '', onBio
           </div>
 
           {/* Step 2: Job Post */}
-          <div className="bg-white p-5 md:p-8 rounded-2xl shadow-sm border border-slate-200 transition-all hover:shadow-md">
+          <div className="bg-slate-50 p-5 md:p-8 rounded-2xl shadow-sm border border-slate-200 transition-all hover:shadow-md">
             <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 text-sm md:text-base">
-              <span className="bg-indigo-600 text-white w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-black flex-shrink-0 shadow-sm">2</span>
+              <span className="bg-indigo-600 text-slate-50 w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-black flex-shrink-0 shadow-sm">2</span>
               {t('cv_step_2')}
             </h3>
 
@@ -287,7 +287,7 @@ const CvMatcher: React.FC<Props> = ({ language = 'en', user, userBio = '', onBio
               <button
                 onClick={() => { setJobInputMode('text'); setJobInput(''); }}
                 className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
-                  jobInputMode === 'text' ? 'bg-white shadow-sm text-slate-900 border border-slate-200' : 'text-slate-500 hover:text-slate-700'
+                  jobInputMode === 'text' ? 'bg-slate-800 shadow-sm text-slate-50 border border-slate-200' : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
                 <FileText className="w-3.5 h-3.5" /> {t('cv_paste_text')}
@@ -295,7 +295,7 @@ const CvMatcher: React.FC<Props> = ({ language = 'en', user, userBio = '', onBio
               <button
                 onClick={() => { setJobInputMode('url'); setJobInput(''); }}
                 className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
-                  jobInputMode === 'url' ? 'bg-white shadow-sm text-slate-900 border border-slate-200' : 'text-slate-500 hover:text-slate-700'
+                  jobInputMode === 'url' ? 'bg-slate-800 shadow-sm text-slate-50 border border-slate-200' : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
                 <LinkIcon className="w-3.5 h-3.5" /> {t('cv_paste_link')}
@@ -344,7 +344,7 @@ const CvMatcher: React.FC<Props> = ({ language = 'en', user, userBio = '', onBio
           <button
             onClick={handleAnalyze}
             disabled={!canAnalyze}
-            className="w-full py-4 bg-slate-900 hover:bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-indigo-500/20 active:scale-[0.98]"
+            className="w-full py-4 bg-slate-900 hover:bg-indigo-600 text-slate-50 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-indigo-500/20 active:scale-[0.98]"
           >
             {isAnalyzing ? (
               <>
@@ -368,7 +368,7 @@ const CvMatcher: React.FC<Props> = ({ language = 'en', user, userBio = '', onBio
         {/* ── RIGHT COLUMN: Results ── */}
         <div className="space-y-6">
           {result ? (
-            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden animate-fade-in transition-all">
+            <div className="bg-slate-50 rounded-2xl shadow-xl border border-slate-200 overflow-hidden animate-fade-in transition-all">
 
               {/* Score header */}
               <div className={`p-8 border-b flex flex-col items-center justify-center text-center relative ${getScoreBg(result.matchScore)}`}>
@@ -390,7 +390,7 @@ const CvMatcher: React.FC<Props> = ({ language = 'en', user, userBio = '', onBio
               <div className="p-6 md:p-8 space-y-8 bg-slate-50/50">
 
                 {/* Reasoning */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                <div className="bg-slate-100 p-5 rounded-2xl border border-slate-100 shadow-sm">
                   <h4 className="font-black text-slate-800 flex items-center gap-2 mb-3 text-xs uppercase tracking-widest">
                     <FileText className="w-4 h-4 text-indigo-500" /> {t('cv_insights')}
                   </h4>
@@ -401,7 +401,7 @@ const CvMatcher: React.FC<Props> = ({ language = 'en', user, userBio = '', onBio
 
                 {/* Optimized Skills Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="bg-white p-5 rounded-2xl border border-green-100 shadow-sm transition-transform hover:scale-[1.02]">
+                  <div className="bg-slate-100 p-5 rounded-2xl border border-green-100 shadow-sm transition-transform hover:scale-[1.02]">
                     <h4 className="font-black text-green-700 flex items-center gap-2 mb-3 text-[10px] uppercase tracking-widest">
                       <CheckCircle2 className="w-4 h-4" /> {t('cv_matching')}
                     </h4>
@@ -414,7 +414,7 @@ const CvMatcher: React.FC<Props> = ({ language = 'en', user, userBio = '', onBio
                     </div>
                   </div>
 
-                  <div className="bg-white p-5 rounded-2xl border border-red-100 shadow-sm transition-transform hover:scale-[1.02]">
+                  <div className="bg-slate-100 p-5 rounded-2xl border border-red-100 shadow-sm transition-transform hover:scale-[1.02]">
                     <h4 className="font-black text-red-700 flex items-center gap-2 mb-3 text-[10px] uppercase tracking-widest">
                       <XCircle className="w-4 h-4" /> {t('cv_missing')}
                     </h4>
@@ -437,7 +437,7 @@ const CvMatcher: React.FC<Props> = ({ language = 'en', user, userBio = '', onBio
                   </h4>
                   <div className="grid grid-cols-1 gap-3">
                     {result.improvementTips.map((tip, i) => (
-                      <div key={i} className="flex gap-4 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm group hover:border-indigo-200 transition-all">
+                      <div key={i} className="flex gap-4 p-4 bg-slate-100 rounded-2xl border border-slate-100 shadow-sm group hover:border-indigo-200 transition-all">
                         <div className="w-6 h-6 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-indigo-600 transition-colors">
                            <span className="text-[10px] font-black text-indigo-600 group-hover:text-white">{i+1}</span>
                         </div>
