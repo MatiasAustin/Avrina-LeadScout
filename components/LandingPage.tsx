@@ -42,7 +42,7 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-100">
       
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-md border-b border-slate-200">
+      <nav className="fixed top-0 w-full z-50 bg-slate-50/80 backdrop-blur-md border-b border-slate-200/50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             {config.appLogo ? (
@@ -52,13 +52,13 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
             )}
             <span className="text-xl font-bold tracking-tight text-slate-800">{config.appName || 'Avrina LeadScout'}</span>
           </div>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-500">
             <a href="#features" className="hover:text-indigo-600 transition">Features</a>
             <a href="#how-it-works" className="hover:text-indigo-600 transition">How it Works</a>
             <button onClick={onViewBlog} className="hover:text-indigo-600 transition">Blog</button>
             <button 
               onClick={onGetStarted}
-              className="bg-slate-900 text-slate-50 px-5 py-2 rounded-full hover:bg-slate-800 transition shadow-sm"
+              className="bg-slate-900 text-slate-50 px-5 py-2 rounded-full hover:bg-slate-800 transition shadow-lg active:scale-95"
             >
               Sign In
             </button>
@@ -251,7 +251,7 @@ const LandingPage: React.FC<Props> = ({ config, onGetStarted, onViewBlog }) => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 pt-20 pb-10">
+      <footer className="bg-slate-50 border-t border-slate-200/50 pt-20 pb-10">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div className="col-span-1 md:col-span-2">

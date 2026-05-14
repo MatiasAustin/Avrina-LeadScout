@@ -32,6 +32,7 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
   const [configSaved, setConfigSaved] = useState(false);
   const [localSaveWarning, setLocalSaveWarning] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
 
   // Stats State
   const [stats, setStats] = useState<VisitorStat[]>([]);
@@ -63,12 +64,18 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
 
       if (usersResult.status === 'fulfilled') setUsers(usersResult.value);
       if (configResult.status === 'fulfilled') setConfig(configResult.value);
-      if (statsResult.status === 'fulfilled') setStats(statsResult.value);
+      if (statsResult.status === 'fulfilled') {
+        setStats(statsResult.value);
+        setStatsError(null);
+      } else {
+        setStatsError("Visitor Stats table not found or inaccessible. Have you run the schema_update.sql?");
+      }
       if (summaryResult.status === 'fulfilled') setStatsSummary(summaryResult.value);
       if (blogResult.status === 'fulfilled') setBlogPosts(blogResult.value);
       
     } catch (e) {
       console.error(e);
+      setStatsError("Failed to load statistics.");
     } finally {
       setLoading(false);
     }
@@ -171,7 +178,7 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+      <div className="bg-slate-50 p-4 md:p-8 rounded-[2rem] shadow-xl border border-slate-200/50">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
            <div>
               <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3">
@@ -180,7 +187,7 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
               </h2>
               <p className="text-slate-500 text-sm mt-1">Global settings, analytics, and content management.</p>
            </div>
-           <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200 overflow-x-auto max-w-full">
+           <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200/60 overflow-x-auto max-w-full glass-morphism">
               <TabButton id="config" label="Settings" icon={LayoutDashboard} />
               <TabButton id="stats" label="Analytics" icon={BarChart3} />
               <TabButton id="blog" label="Blog" icon={Newspaper} />
@@ -201,7 +208,7 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
               <div className="space-y-6">
                 <div className="flex items-center gap-2 text-slate-800"><Type className="w-5 h-5 text-indigo-600" /> <h3 className="font-bold">Branding</h3></div>
                 <div className="space-y-4">
-                  <input type="text" value={config.appName || ''} onChange={e => setConfig({ ...config, appName: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="App Name" />
+                  <input type="text" value={config.appName || ''} onChange={e => setConfig({ ...config, appName: e.target.value })} className="w-full px-4 py-3 bg-slate-100/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition" placeholder="App Name" />
                   <div className="flex gap-2">
                     <input type="text" value={config.appLogo || ''} onChange={e => setConfig({ ...config, appLogo: e.target.value })} className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs" placeholder="Logo URL" />
                     <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
@@ -228,11 +235,11 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                <div className="space-y-6">
                  <div className="flex items-center gap-2 text-slate-800"><Database className="w-5 h-5 text-blue-600" /> <h3 className="font-bold">Database</h3></div>
-                 <input type="text" value={config.dbUrl || ''} onChange={e => setConfig({ ...config, dbUrl: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Database API URL (Supabase)" />
+                 <input type="text" value={config.dbUrl || ''} onChange={e => setConfig({ ...config, dbUrl: e.target.value })} className="w-full px-4 py-3 bg-slate-100/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 transition" placeholder="Database API URL (Supabase)" />
                </div>
                <div className="space-y-6">
                  <div className="flex items-center gap-2 text-slate-800"><DollarSign className="w-5 h-5 text-green-600" /> <h3 className="font-bold">Donation</h3></div>
-                 <input type="url" value={config.donationLink} onChange={e => setConfig({ ...config, donationLink: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Donation Link (Saweria/Kofi)" />
+                 <input type="url" value={config.donationLink} onChange={e => setConfig({ ...config, donationLink: e.target.value })} className="w-full px-4 py-3 bg-slate-100/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-green-500/20 transition" placeholder="Donation Link (Saweria/Kofi)" />
                </div>
             </div>
 
@@ -246,23 +253,41 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
 
         {activeTab === 'stats' && (
           <div className="space-y-8 animate-fade-in">
+             {statsError && (
+               <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-start gap-4 text-indigo-900">
+                  <Database className="w-6 h-6 shrink-0 mt-1" />
+                  <div>
+                    <h4 className="font-bold">Statistics Setup Required</h4>
+                    <p className="text-sm opacity-80 mt-1">It looks like the visitor tracking table is not set up in your Supabase database yet.</p>
+                    <div className="mt-4 flex gap-3">
+                       <button 
+                        onClick={() => window.open('https://supabase.com/dashboard/project/_/sql', '_blank')}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md hover:bg-indigo-700 transition"
+                       >
+                         Open SQL Editor
+                       </button>
+                    </div>
+                  </div>
+               </div>
+             )}
+
              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 text-center">
+                <div className="bg-slate-100/50 p-6 rounded-3xl border border-slate-200/50 text-center hover:bg-slate-100 transition shadow-sm">
                    <p className="text-xs font-bold text-slate-400 uppercase mb-2">Total Visits</p>
                    <p className="text-4xl font-black text-slate-800">{statsSummary.total}</p>
                 </div>
-                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 text-center">
+                <div className="bg-slate-100/50 p-6 rounded-3xl border border-slate-200/50 text-center hover:bg-slate-100 transition shadow-sm">
                    <p className="text-xs font-bold text-slate-400 uppercase mb-2">Top Page</p>
                    <p className="text-xl font-black text-slate-800 truncate">{Object.entries(statsSummary.byPage).sort((a,b) => (b[1] as number) - (a[1] as number))[0]?.[0] || 'N/A'}</p>
                 </div>
-                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 text-center">
+                <div className="bg-slate-100/50 p-6 rounded-3xl border border-slate-200/50 text-center hover:bg-slate-100 transition shadow-sm">
                    <p className="text-xs font-bold text-slate-400 uppercase mb-2">Unique IPs</p>
                    <p className="text-4xl font-black text-slate-800">{new Set(stats.map(s => s.ipAddress)).size}</p>
                 </div>
              </div>
 
-             <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                <h4 className="font-bold mb-6 flex items-center gap-2"><BarChart3 className="w-5 h-5" /> Traffic Activity</h4>
+             <div className="bg-slate-100/30 p-6 rounded-3xl border border-slate-200/50 shadow-inner">
+                <h4 className="font-bold mb-6 flex items-center gap-2 text-slate-700"><BarChart3 className="w-5 h-5" /> Traffic Activity</h4>
                 <div className="h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={stats.slice(0, 50).reverse()}>

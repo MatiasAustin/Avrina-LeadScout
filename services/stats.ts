@@ -9,10 +9,14 @@ export const trackVisitor = async (pagePath: string) => {
       page_path: pagePath,
       user_agent: navigator.userAgent,
       referrer: document.referrer,
-      // IP address is usually handled by Supabase functions or server-side, 
-      // but for client-side we'll just send what we can.
     });
-    if (error) console.error("Track Error:", error);
+    if (error) {
+      if (error.code === 'PGRST116' || error.message.includes('relation "visitor_stats" does not exist')) {
+        console.warn("Visitor Stats table not found. Please run schema_update.sql in Supabase.");
+      } else {
+        console.error("Track Error:", error);
+      }
+    }
   } catch (e) {
     console.error("Tracking failed:", e);
   }
