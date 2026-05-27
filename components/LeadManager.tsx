@@ -549,7 +549,19 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="font-bold text-slate-800">{lead.name}</h3>
                   <a href={lead.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-slate-400 hover:text-slate-800"><ExternalLink className="w-3.5 h-3.5" /></a>
-                  {lead.value > 0 && <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">+{lead.currency} {lead.value}</span>}
+                  <button 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      const text = `1. Nama brand / akun: ${lead.name}\n2. Platform outreach: ${lead.platform}\n3. Website / landing page: ${lead.url || '-'}\n4. Screenshot profil atau branding: ${lead.notes ? 'Ada notes' : 'Tidak ada'}\n5. Email target: ${lead.targetEmail || '-'}\n6. Industri / niche: ${lead.niche || '-'}`; 
+                      navigator.clipboard.writeText(text); 
+                      alert("Info Target disalin ke clipboard!"); 
+                    }} 
+                    className="text-slate-400 hover:text-indigo-600 transition ml-1"
+                    title="Copy Info Target untuk ChatGPT"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                  </button>
+                  {lead.value > 0 && <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded ml-2">+{lead.currency} {lead.value}</span>}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded uppercase">{lead.platform}</span>
