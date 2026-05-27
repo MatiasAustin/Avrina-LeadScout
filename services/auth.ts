@@ -288,7 +288,10 @@ export const getConfig = async (): Promise<AppConfig> => {
       dedicationMessage: data.dedication_message || '',
       signature: data.signature || '',
       appName: data.app_name || '',
-      appLogo: data.app_logo || ''
+      appLogo: data.app_logo || '',
+      aiApiKey: data.ai_api_key || '',
+      aiProvider: data.ai_provider || 'google',
+      dbUrl: data.db_url || ''
     };
   } catch (e) {
     if (localConfig) return { ...DEFAULT_CONFIG, ...localConfig };
@@ -350,7 +353,7 @@ export const getAllUsers = async (): Promise<User[]> => {
   if (error) throw error;
   return data.map((p: any) => ({
     id: p.id,
-    email: p.email,
+    email: p.email || 'N/A (Update SQL)',
     name: p.full_name,
     role: p.role,
     createdAt: p.created_at,

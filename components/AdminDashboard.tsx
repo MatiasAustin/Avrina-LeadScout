@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getAllUsers, getConfig, saveConfig, sendPasswordReset } from '../services/auth';
 import { User, AppConfig, BlogPost, VisitorStat, VisitorSummary } from '../types';
-import { Save, ShieldAlert, Users, DollarSign, KeyRound, Info, Loader2, ExternalLink, Coffee, Heart, Zap, Megaphone, Share2, Check, PenTool, Type, Image, AlertTriangle, Upload, X, BarChart3, Newspaper, Plus, Trash2, Eye, LayoutDashboard, Database, Brain } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts';
+import { Save, ShieldAlert, Users, DollarSign, KeyRound, Loader2, Check, PenTool, Type, AlertTriangle, Upload, BarChart3, Newspaper, Plus, Trash2, LayoutDashboard, Database, Brain } from 'lucide-react';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { getVisitorStats, getVisitorSummary } from '../services/stats';
 import { getAllPosts, savePost, deletePost } from '../services/blog';
 
@@ -62,16 +62,16 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
         getAllPosts()
       ]);
 
-      if (usersResult.status === 'fulfilled') setUsers(usersResult.value);
-      if (configResult.status === 'fulfilled') setConfig(configResult.value);
+      if (usersResult.status === 'fulfilled') setUsers(usersResult.value as User[]);
+      if (configResult.status === 'fulfilled') setConfig(configResult.value as AppConfig);
       if (statsResult.status === 'fulfilled') {
-        setStats(statsResult.value);
+        setStats(statsResult.value as VisitorStat[]);
         setStatsError(null);
       } else {
         setStatsError("Visitor Stats table not found or inaccessible. Have you run the schema_update.sql?");
       }
-      if (summaryResult.status === 'fulfilled') setStatsSummary(summaryResult.value);
-      if (blogResult.status === 'fulfilled') setBlogPosts(blogResult.value);
+      if (summaryResult.status === 'fulfilled') setStatsSummary(summaryResult.value as VisitorSummary);
+      if (blogResult.status === 'fulfilled') setBlogPosts(blogResult.value as BlogPost[]);
       
     } catch (e) {
       console.error(e);

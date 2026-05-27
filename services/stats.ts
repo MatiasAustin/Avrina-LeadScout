@@ -37,6 +37,7 @@ export const getVisitorStats = async () => {
     pagePath: s.page_path,
     userAgent: s.user_agent,
     referrer: s.referrer,
+    ipAddress: s.ip_address,
     timestamp: s.timestamp
   })) as VisitorStat[];
 };

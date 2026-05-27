@@ -49,6 +49,8 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
   const [newLeadPlatform, setNewLeadPlatform] = useState<Platform>(Platform.Google);
   const [newLeadNotes, setNewLeadNotes] = useState('');
   const [newLeadPainPoints, setNewLeadPainPoints] = useState('');
+  const [newLeadTargetEmail, setNewLeadTargetEmail] = useState('');
+  const [newLeadNiche, setNewLeadNiche] = useState(userNiche || 'General');
   
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState('');
@@ -89,11 +91,12 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
       name: newLeadName,
       url: newLeadUrl,
       platform: newLeadPlatform,
-      niche: userNiche || 'General',
+      niche: newLeadNiche,
       dateAdded: new Date().toISOString(),
       status: LeadStatus.NEW,
       notes: newLeadNotes,
-      painPoints: newLeadPainPoints
+      painPoints: newLeadPainPoints,
+      targetEmail: newLeadTargetEmail
     };
     addLead(lead);
     setIsFormOpen(false);
@@ -105,6 +108,8 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
     setNewLeadUrl('');
     setNewLeadNotes('');
     setNewLeadPainPoints('');
+    setNewLeadTargetEmail('');
+    setNewLeadNiche(userNiche || 'General');
     setMediaItems([]);
     setPreviews([]);
   };
@@ -252,7 +257,9 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
         platform: editingLead.platform,
         value: editingLead.value,
         currency: editingLead.currency,
-        dealType: editingLead.dealType
+        dealType: editingLead.dealType,
+        targetEmail: editingLead.targetEmail,
+        niche: editingLead.niche
       });
       setEditingLead(null);
     }
@@ -588,13 +595,17 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                   <button type="button" onClick={handleScan} disabled={mediaItems.length === 0 || isScanning} className="w-full bg-slate-800 text-slate-50 font-bold py-2.5 rounded-xl text-sm disabled:opacity-50">{isScanning ? 'Scanning...' : 'AI Scan from Media'}</button>
                </div>
                <div className="grid grid-cols-2 gap-3">
-                 <input type="text" required value={newLeadName} onChange={e => setNewLeadName(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Name / Company" />
+                 <input type="text" required value={newLeadName} onChange={e => setNewLeadName(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Nama brand / akun" />
                  <select value={newLeadPlatform} onChange={e => setNewLeadPlatform(e.target.value as Platform)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none">
                     {Object.values(Platform).map(p => <option key={p} value={p}>{p}</option>)}
                  </select>
                </div>
-               <input type="url" required value={newLeadUrl} onChange={e => setNewLeadUrl(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Profile URL" />
-               <textarea value={newLeadNotes} onChange={e => setNewLeadNotes(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[80px]" placeholder="Bio / Notes" />
+               <input type="url" required value={newLeadUrl} onChange={e => setNewLeadUrl(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Website / landing page" />
+               <div className="grid grid-cols-2 gap-3">
+                 <input type="email" value={newLeadTargetEmail} onChange={e => setNewLeadTargetEmail(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Email target (optional)" />
+                 <input type="text" required value={newLeadNiche} onChange={e => setNewLeadNiche(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Industri / niche" />
+               </div>
+               <textarea value={newLeadNotes} onChange={e => setNewLeadNotes(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none min-h-[80px]" placeholder="Notes tambahan" />
                <textarea value={newLeadPainPoints} onChange={e => setNewLeadPainPoints(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-red-600 font-medium" placeholder="Observed Problems" />
                <button type="submit" className="w-full bg-slate-800 text-slate-50 font-bold py-3 rounded-xl shadow-lg mt-2">Add to Database</button>
             </form>
@@ -607,8 +618,12 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6"><h3 className="text-xl font-bold">Edit Lead</h3><button onClick={() => setEditingLead(null)}><XCircle className="w-6 h-6 text-slate-300" /></button></div>
             <div className="space-y-4">
-              <input type="text" value={editingLead.name} onChange={e => setEditingLead({...editingLead, name: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Name" />
-              <input type="url" value={editingLead.url} onChange={e => setEditingLead({...editingLead, url: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="URL" />
+              <input type="text" value={editingLead.name} onChange={e => setEditingLead({...editingLead, name: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Nama brand / akun" />
+              <input type="url" value={editingLead.url} onChange={e => setEditingLead({...editingLead, url: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Website / landing page" />
+              <div className="grid grid-cols-2 gap-3">
+                 <input type="email" value={editingLead.targetEmail || ''} onChange={e => setEditingLead({...editingLead, targetEmail: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Email target (optional)" />
+                 <input type="text" value={editingLead.niche} onChange={e => setEditingLead({...editingLead, niche: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Industri / niche" />
+              </div>
               <div className={`p-4 rounded-xl space-y-4 border transition-all ${editingLead.status === LeadStatus.WON ? 'bg-indigo-50/50 border-indigo-200' : 'bg-slate-50 border-slate-200'}`}>
                 <div className="flex justify-between items-center">
                   <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{editingLead.status === LeadStatus.WON ? 'Financial Details (Client)' : 'Financial Potential'}</h4>

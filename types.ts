@@ -6,7 +6,9 @@ export enum Platform {
   LinkedIn = 'LinkedIn',
   Instagram = 'Instagram',
   Twitter = 'Twitter/X',
-  YouTube = 'YouTube'
+  YouTube = 'YouTube',
+  Threads = 'Threads',
+  Email = 'Email'
 }
 
 export enum LeadStatus {
@@ -70,6 +72,8 @@ export interface Lead {
   // AI Generated Data
   analysis?: LeadAnalysis;
   outreach?: OutreachDraft;
+  
+  targetEmail?: string;
 }
 
 export interface UserProfile {
