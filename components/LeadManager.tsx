@@ -9,7 +9,7 @@ import {
   Camera, Clipboard, ChevronDown, ChevronRight,
   Calendar, UserCheck, Shield, Clock,
   Check, Search, FileText, Edit3, XCircle, Upload, Film, Settings2, Sparkles, Send, ClipboardList, UserCircle,
-  Stethoscope, Copy
+  Stethoscope, Copy, ChevronLeft, SortAsc, SortDesc, LayoutList
 } from 'lucide-react';
 import { useLeads } from '../hooks/useLeads';
 import { getFriendlyErrorMessage, getTranslation } from '../utils/i18n';
@@ -55,6 +55,12 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<LeadStatus | 'ALL'>('ALL');
+
+  // Date/Time Sort & View State
+  const [dateView, setDateView] = useState<'recent' | 'calendar'>('recent');
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc'); // desc = terbaru dulu
+  const [calendarDate, setCalendarDate] = useState<string>(() => new Date().toISOString().slice(0, 10)); // YYYY-MM-DD
+  const [calendarPage, setCalendarPage] = useState(0); // 0 = hari ini, -1 = kemarin, dst
   
   // Edit Mode State
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
@@ -163,13 +169,79 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
   };
 
   const filteredLeads = useMemo(() => {
-    return leads.filter(lead => {
+    let list = leads.filter(lead => {
       const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                            lead.notes.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === 'ALL' || lead.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [leads, searchTerm, statusFilter]);
+    // Sort by date
+    list = [...list].sort((a, b) => {
+      const da = new Date(a.dateAdded).getTime();
+      const db = new Date(b.dateAdded).getTime();
+      return sortOrder === 'desc' ? db - da : da - db;
+    });
+    return list;
+  }, [leads, searchTerm, statusFilter, sortOrder]);
+
+  // Compute the effective calendar date (adjusted by calendarPage offset)
+  const effectiveCalendarDate = useMemo(() => {
+    const base = new Date(calendarDate + 'T00:00:00');
+    base.setDate(base.getDate() + calendarPage);
+    return base.toISOString().slice(0, 10); // YYYY-MM-DD
+  }, [calendarDate, calendarPage]);
+
+  // Calendar view: leads for selected date
+  const calendarLeads = useMemo(() => {
+    return filteredLeads.filter(lead => {
+      const d = new Date(lead.dateAdded);
+      return d.toISOString().slice(0, 10) === effectiveCalendarDate;
+    });
+  }, [filteredLeads, effectiveCalendarDate]);
+
+  // Recent view: group leads by date label
+  const groupedLeads = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const groups: { label: string; leads: Lead[] }[] = [];
+    const map: Record<string, Lead[]> = {};
+
+    filteredLeads.forEach(lead => {
+      const d = new Date(lead.dateAdded);
+      d.setHours(0, 0, 0, 0);
+      let label: string;
+      if (d.getTime() === today.getTime()) {
+        label = '🟢 Hari Ini';
+      } else if (d.getTime() === yesterday.getTime()) {
+        label = '🕐 Kemarin';
+      } else {
+        // Format: Senin, 26 Mei 2026
+        label = d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      }
+      if (!map[label]) map[label] = [];
+      map[label].push(lead);
+    });
+
+    // Maintain order based on first lead's date
+    const seen = new Set<string>();
+    filteredLeads.forEach(lead => {
+      const d = new Date(lead.dateAdded);
+      d.setHours(0, 0, 0, 0);
+      let label: string;
+      if (d.getTime() === today.getTime()) label = '🟢 Hari Ini';
+      else if (d.getTime() === yesterday.getTime()) label = '🕐 Kemarin';
+      else label = d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      if (!seen.has(label)) {
+        seen.add(label);
+        groups.push({ label, leads: map[label] });
+      }
+    });
+
+    return groups;
+  }, [filteredLeads]);
 
   const stats = useMemo(() => {
     const total = leads.length;
@@ -539,12 +611,79 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
         </div>
       </div>
 
-      <div className="bg-slate-50 rounded-2xl shadow-sm border border-slate-200 divide-y divide-slate-100">
-        {filteredLeads.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 italic">No leads found.</div>
-        ) : filteredLeads.map(lead => (
+      {/* Date/Time View Toolbar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        {/* View Tabs: Recent / Calendar */}
+        <div className="flex bg-slate-100 p-1 rounded-xl gap-0.5">
+          <button
+            onClick={() => setDateView('recent')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[11px] font-black transition ${
+              dateView === 'recent' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <LayoutList className="w-3.5 h-3.5" />
+            Recent
+          </button>
+          <button
+            onClick={() => setDateView('calendar')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[11px] font-black transition ${
+              dateView === 'calendar' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            Calendar
+          </button>
+        </div>
+
+        {/* Calendar Controls */}
+        {dateView === 'calendar' && (
+          <div className="flex items-center gap-2 flex-1">
+            <button
+              onClick={() => setCalendarPage(p => p - 1)}
+              className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition text-slate-600"
+              title="Hari sebelumnya"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <input
+              type="date"
+              value={effectiveCalendarDate}
+              onChange={e => { setCalendarDate(e.target.value); setCalendarPage(0); }}
+              className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl outline-none text-sm font-semibold text-slate-700 cursor-pointer"
+            />
+            <button
+              onClick={() => setCalendarPage(p => p + 1)}
+              disabled={effectiveCalendarDate >= new Date().toISOString().slice(0,10)}
+              className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition text-slate-600 disabled:opacity-40"
+              title="Hari berikutnya"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => { setCalendarDate(new Date().toISOString().slice(0,10)); setCalendarPage(0); }}
+              className="px-3 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-xl text-[11px] font-black hover:bg-indigo-100 transition whitespace-nowrap"
+            >
+              Hari Ini
+            </button>
+          </div>
+        )}
+
+        {/* Sort Order Toggle */}
+        <button
+          onClick={() => setSortOrder(o => o === 'desc' ? 'asc' : 'desc')}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-[11px] font-black text-slate-600 hover:bg-slate-50 transition ml-auto"
+          title={sortOrder === 'desc' ? 'Terbaru dulu' : 'Terlama dulu'}
+        >
+          {sortOrder === 'desc' ? <SortDesc className="w-3.5 h-3.5" /> : <SortAsc className="w-3.5 h-3.5" />}
+          {sortOrder === 'desc' ? 'Terbaru' : 'Terlama'}
+        </button>
+      </div>
+
+      {/* LEAD CARD RENDERER (reusable) */}
+      {(() => {
+        const renderLeadCard = (lead: Lead) => (
           <div key={lead.id} className="group">
-            <div onClick={() => setSelectedLead(selectedLead?.id === lead.id ? null : lead)} className={`p-5 cursor-pointer hover:bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4 transition ${selectedLead?.id === lead.id ? 'bg-slate-50' : ''}`}>
+            <div onClick={() => setSelectedLead(selectedLead?.id === lead.id ? null : lead)} className={`p-5 cursor-pointer hover:bg-slate-50/80 flex flex-col md:flex-row md:items-center justify-between gap-4 transition ${selectedLead?.id === lead.id ? 'bg-slate-50' : ''}`}>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="font-bold text-slate-800">{lead.name}</h3>
@@ -563,12 +702,16 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                   </button>
                   {lead.value > 0 && <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded ml-2">+{lead.currency} {lead.value}</span>}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[10px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded uppercase">{lead.platform}</span>
                   <span className="text-[10px] text-slate-400 italic">{lead.niche}</span>
                   {lead.status === LeadStatus.WON && lead.dealType && (
                     <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 uppercase tracking-tight">{lead.dealType}</span>
                   )}
+                  <span className="text-[9px] text-slate-300 ml-auto">
+                    <Clock className="w-3 h-3 inline mr-0.5" />
+                    {new Date(lead.dateAdded).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -581,13 +724,83 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
               </div>
             </div>
             {selectedLead?.id === lead.id && (
-              <div className="px-5 pb-8 pt-2 border-t border-slate-50 bg-slate-50">
+              <div className="px-5 pb-8 pt-2 border-t border-slate-100 bg-slate-50">
                  <AnalysisView lead={lead} />
               </div>
             )}
           </div>
-        ))}
-      </div>
+        );
+
+        /* ---- CALENDAR VIEW ---- */
+        if (dateView === 'calendar') {
+          const dateLabel = new Date(effectiveCalendarDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+          const isToday = effectiveCalendarDate === new Date().toISOString().slice(0, 10);
+          return (
+            <div className="space-y-2">
+              {/* Date Header */}
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-black text-slate-700">{dateLabel}</span>
+                  {isToday && <span className="text-[10px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Hari Ini</span>}
+                </div>
+                <span className="text-[11px] text-slate-400">{calendarLeads.length} leads</span>
+              </div>
+              <div className="bg-slate-50 rounded-2xl shadow-sm border border-slate-200 divide-y divide-slate-100">
+                {calendarLeads.length === 0 ? (
+                  <div className="p-12 text-center text-slate-400 italic flex flex-col items-center gap-2">
+                    <Calendar className="w-8 h-8 opacity-30" />
+                    Tidak ada leads pada tanggal ini.
+                  </div>
+                ) : calendarLeads.map(lead => renderLeadCard(lead))}
+              </div>
+              {/* Prev/Next Navigation Bottom */}
+              <div className="flex items-center justify-between pt-2">
+                <button
+                  onClick={() => setCalendarPage(p => p - 1)}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition shadow-sm"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Sebelumnya
+                </button>
+                <span className="text-[11px] text-slate-400">Navigasi tanggal</span>
+                <button
+                  onClick={() => setCalendarPage(p => p + 1)}
+                  disabled={effectiveCalendarDate >= new Date().toISOString().slice(0,10)}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition shadow-sm disabled:opacity-40"
+                >
+                  Berikutnya <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          );
+        }
+
+        /* ---- RECENT VIEW (grouped by date) ---- */
+        if (filteredLeads.length === 0) {
+          return (
+            <div className="bg-slate-50 rounded-2xl shadow-sm border border-slate-200">
+              <div className="p-12 text-center text-slate-400 italic">No leads found.</div>
+            </div>
+          );
+        }
+
+        return (
+          <div className="space-y-4">
+            {groupedLeads.map(({ label, leads: groupLeads }) => (
+              <div key={label}>
+                {/* Date Group Header */}
+                <div className="flex items-center gap-3 mb-2 px-1">
+                  <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">{label}</span>
+                  <div className="flex-1 h-px bg-slate-200" />
+                  <span className="text-[10px] text-slate-400">{groupLeads.length} leads</span>
+                </div>
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 divide-y divide-slate-100">
+                  {groupLeads.map(lead => renderLeadCard(lead))}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       {isFormOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
