@@ -192,13 +192,22 @@ const App: React.FC = () => {
 
   const initApp = async () => {
     setLoadingAuth(true);
+    
+    const isRecoveryHash = window.location.hash.includes('type=recovery');
+    
     const currentUser = await getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
       setJobTitle(currentUser.jobTitle || '');
       setNiche(currentUser.niche || '');
       setBio(currentUser.bio || '');
-      setActiveTab('strategy');
+      
+      if (isRecoveryHash) {
+        setIsRecovering(true);
+        setActiveTab('auth');
+      } else {
+        setActiveTab((prev) => prev === 'auth' ? 'auth' : 'strategy');
+      }
     }
     const appConfig = await getConfig();
     setConfig(appConfig);
@@ -328,6 +337,10 @@ const App: React.FC = () => {
           setIsRecovering(false);
           setActiveTab('strategy');
         }} 
+        onPasswordUpdated={() => {
+          setIsRecovering(false);
+          setActiveTab('strategy');
+        }}
       />
     );
   }

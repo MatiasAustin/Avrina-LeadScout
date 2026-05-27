@@ -11,9 +11,10 @@ interface Props {
   language: Language;
   setLanguage: (lang: Language) => void;
   forceUpdatePassword?: boolean; // NEW PROP
+  onPasswordUpdated?: () => void;
 }
 
-const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config, language, setLanguage, forceUpdatePassword }) => {
+const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config, language, setLanguage, forceUpdatePassword, onPasswordUpdated }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isUpdatePassword, setIsUpdatePassword] = useState(forceUpdatePassword || false);
@@ -59,13 +60,16 @@ const AuthScreen: React.FC<Props> = ({ onAuthSuccess, config, language, setLangu
         setSuccess(t('update_password_success'));
         // Automatically switch back to login after success
         setTimeout(() => {
-           setIsUpdatePassword(false);
-           setIsLogin(true);
-           setSuccess('');
-           setPassword('');
-           setConfirmPassword('');
-           // If we force redirected, we might want to refresh the app state
            window.location.hash = ''; // Clear tokens from URL
+           if (onPasswordUpdated) {
+             onPasswordUpdated();
+           } else {
+             setIsUpdatePassword(false);
+             setIsLogin(true);
+             setSuccess('');
+             setPassword('');
+             setConfirmPassword('');
+           }
         }, 3000);
       } else if (isForgotPassword) {
         await sendPasswordReset(email);
