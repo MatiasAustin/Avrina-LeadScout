@@ -167,7 +167,11 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
   const TabButton = ({ id, label, icon: Icon }: { id: AdminTab, label: string, icon: any }) => (
     <button 
       onClick={() => setActiveTab(id)}
-      className={`px-4 py-2 flex items-center gap-2 text-sm font-bold rounded-lg transition ${activeTab === id ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'}`}
+      className={`px-4 py-2 flex items-center gap-2 text-sm font-bold rounded-lg transition ${
+        activeTab === id 
+          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' 
+          : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+      }`}
     >
       <Icon className="w-4 h-4" />
       {label}
@@ -207,44 +211,44 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div className="flex items-center gap-2 text-slate-800"><Type className="w-5 h-5 text-indigo-600" /> <h3 className="font-bold">Branding</h3></div>
-                <div className="space-y-4">
-                  <input type="text" value={config.appName || ''} onChange={e => setConfig({ ...config, appName: e.target.value })} className="w-full px-4 py-3 bg-slate-100/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition" placeholder="App Name" />
+                 <div className="space-y-4">
+                  <input type="text" value={config.appName || ''} onChange={e => setConfig({ ...config, appName: e.target.value })} className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition text-slate-900" placeholder="App Name" />
                   <div className="flex gap-2">
-                    <input type="text" value={config.appLogo || ''} onChange={e => setConfig({ ...config, appLogo: e.target.value })} className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs" placeholder="Logo URL" />
+                    <input type="text" value={config.appLogo || ''} onChange={e => setConfig({ ...config, appLogo: e.target.value })} className="flex-1 px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl outline-none text-xs text-slate-900" placeholder="Logo URL" />
                     <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
-                    <button type="button" onClick={() => logoInputRef.current?.click()} className="p-2.5 bg-white border border-slate-200 rounded-xl">{uploadingLogo ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}</button>
+                    <button type="button" onClick={() => logoInputRef.current?.click()} className="p-3 bg-slate-100 border border-slate-200 rounded-xl hover:bg-slate-200 transition text-slate-500">{uploadingLogo ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}</button>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-6">
                 <div className="flex items-center gap-2 text-slate-800"><Brain className="w-5 h-5 text-purple-600" /> <h3 className="font-bold">AI Configuration</h3></div>
-                <div className="space-y-4">
+                 <div className="space-y-4">
                   <div className="flex gap-2">
-                    <select value={config.aiProvider} onChange={e => setConfig({...config, aiProvider: e.target.value as any})} className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none">
-                      <option value="google">Google Gemini</option>
-                      <option value="openai">OpenAI (GPT)</option>
+                    <select value={config.aiProvider} onChange={e => setConfig({...config, aiProvider: e.target.value as any})} className="px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl outline-none text-slate-900">
+                      <option value="google" className="bg-slate-100 text-slate-900">Google Gemini</option>
+                      <option value="openai" className="bg-slate-100 text-slate-900">OpenAI (GPT)</option>
                     </select>
-                    <input type="password" value={config.aiApiKey || ''} onChange={e => setConfig({ ...config, aiApiKey: e.target.value })} className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="AI API Key" />
+                    <input type="password" value={config.aiApiKey || ''} onChange={e => setConfig({ ...config, aiApiKey: e.target.value })} className="flex-1 px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl outline-none text-slate-900" placeholder="AI API Key" />
                   </div>
                   <p className="text-[10px] text-slate-400">Leave blank to use system default environment variables.</p>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                <div className="space-y-6">
-                 <div className="flex items-center gap-2 text-slate-800"><Database className="w-5 h-5 text-blue-600" /> <h3 className="font-bold">Database</h3></div>
-                 <input type="text" value={config.dbUrl || ''} onChange={e => setConfig({ ...config, dbUrl: e.target.value })} className="w-full px-4 py-3 bg-slate-100/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 transition" placeholder="Database API URL (Supabase)" />
+                 <div className="flex items-center gap-2 text-slate-800"><Database className="w-5 h-5 text-blue-600" /> <h3 className="font-bold text-slate-800">Database</h3></div>
+                 <input type="text" value={config.dbUrl || ''} onChange={e => setConfig({ ...config, dbUrl: e.target.value })} className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 transition text-slate-900" placeholder="Database API URL (Supabase)" />
                </div>
                <div className="space-y-6">
-                 <div className="flex items-center gap-2 text-slate-800"><DollarSign className="w-5 h-5 text-green-600" /> <h3 className="font-bold">Donation</h3></div>
-                 <input type="url" value={config.donationLink} onChange={e => setConfig({ ...config, donationLink: e.target.value })} className="w-full px-4 py-3 bg-slate-100/50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-green-500/20 transition" placeholder="Donation Link (Saweria/Kofi)" />
+                 <div className="flex items-center gap-2 text-slate-800"><DollarSign className="w-5 h-5 text-green-600" /> <h3 className="font-bold text-slate-800">Donation</h3></div>
+                 <input type="url" value={config.donationLink} onChange={e => setConfig({ ...config, donationLink: e.target.value })} className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-green-500/20 transition text-slate-900" placeholder="Donation Link (Saweria/Kofi)" />
                </div>
             </div>
 
             <div className="pt-6 border-t border-slate-100 flex justify-end">
-              <button type="submit" className={`px-10 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition ${configSaved ? 'bg-green-600 text-slate-50' : 'bg-slate-900 text-slate-50 active:scale-95'}`}>
+              <button type="submit" className={`px-10 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition active:scale-95 ${configSaved ? 'bg-green-600 text-white' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}>
                 {configSaved ? <><Check className="w-5 h-5" /> Saved</> : <><Save className="w-5 h-5" /> Save Changes</>}
               </button>
             </div>
@@ -272,22 +276,22 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
              )}
 
              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-slate-100/50 p-6 rounded-3xl border border-slate-200/50 text-center hover:bg-slate-100 transition shadow-sm">
-                   <p className="text-xs font-bold text-slate-400 uppercase mb-2">Total Visits</p>
-                   <p className="text-4xl font-black text-slate-800">{statsSummary.total}</p>
+                <div className="bg-slate-100 p-6 rounded-3xl border border-slate-200/50 text-center hover:bg-slate-200/50 transition shadow-sm">
+                   <p className="text-xs font-bold text-slate-500 uppercase mb-2">Total Visits</p>
+                   <p className="text-4xl font-black text-slate-900">{statsSummary.total}</p>
                 </div>
-                <div className="bg-slate-100/50 p-6 rounded-3xl border border-slate-200/50 text-center hover:bg-slate-100 transition shadow-sm">
-                   <p className="text-xs font-bold text-slate-400 uppercase mb-2">Top Page</p>
-                   <p className="text-xl font-black text-slate-800 truncate">{Object.entries(statsSummary.byPage).sort((a,b) => (b[1] as number) - (a[1] as number))[0]?.[0] || 'N/A'}</p>
+                <div className="bg-slate-100 p-6 rounded-3xl border border-slate-200/50 text-center hover:bg-slate-200/50 transition shadow-sm">
+                   <p className="text-xs font-bold text-slate-500 uppercase mb-2">Top Page</p>
+                   <p className="text-xl font-black text-slate-900 truncate">{Object.entries(statsSummary.byPage).sort((a,b) => (b[1] as number) - (a[1] as number))[0]?.[0] || 'N/A'}</p>
                 </div>
-                <div className="bg-slate-100/50 p-6 rounded-3xl border border-slate-200/50 text-center hover:bg-slate-100 transition shadow-sm">
-                   <p className="text-xs font-bold text-slate-400 uppercase mb-2">Unique IPs</p>
-                   <p className="text-4xl font-black text-slate-800">{new Set(stats.map(s => s.ipAddress)).size}</p>
+                <div className="bg-slate-100 p-6 rounded-3xl border border-slate-200/50 text-center hover:bg-slate-200/50 transition shadow-sm">
+                   <p className="text-xs font-bold text-slate-500 uppercase mb-2">Unique IPs</p>
+                   <p className="text-4xl font-black text-slate-900">{new Set(stats.map(s => s.ipAddress)).size}</p>
                 </div>
              </div>
 
-             <div className="bg-slate-100/30 p-6 rounded-3xl border border-slate-200/50 shadow-inner">
-                <h4 className="font-bold mb-6 flex items-center gap-2 text-slate-700"><BarChart3 className="w-5 h-5" /> Traffic Activity</h4>
+             <div className="bg-slate-100 p-6 rounded-3xl border border-slate-200/50 shadow-inner">
+                <h4 className="font-bold mb-6 flex items-center gap-2 text-slate-900"><BarChart3 className="w-5 h-5" /> Traffic Activity</h4>
                 <div className="h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={stats.slice(0, 50).reverse()}>
@@ -315,22 +319,22 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
                 </button>
              </div>
 
-             {isEditingPost ? (
-               <div className="bg-slate-50 p-8 rounded-2xl border border-slate-200 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                     <input type="text" value={currentPost.title} onChange={e => setCurrentPost({...currentPost, title: e.target.value})} className="px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none font-bold" placeholder="Post Title" />
-                     <input type="text" value={currentPost.slug} onChange={e => setCurrentPost({...currentPost, slug: e.target.value})} className="px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none" placeholder="url-slug" />
-                  </div>
-                  <input type="text" value={currentPost.imageUrl || ''} onChange={e => setCurrentPost({...currentPost, imageUrl: e.target.value})} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none" placeholder="Image URL" />
-                  <textarea value={currentPost.content} onChange={e => setCurrentPost({...currentPost, content: e.target.value})} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none min-h-[300px]" placeholder="Content (Markdown supported)..." />
+              {isEditingPost ? (
+                <div className="bg-slate-100 p-8 rounded-[2rem] border border-slate-200/50 space-y-6">
+                   <div className="grid grid-cols-2 gap-6">
+                      <input type="text" value={currentPost.title} onChange={e => setCurrentPost({...currentPost, title: e.target.value})} className="px-4 py-4 bg-slate-100 border border-slate-200 rounded-2xl outline-none font-bold text-slate-900" placeholder="Post Title" />
+                      <input type="text" value={currentPost.slug} onChange={e => setCurrentPost({...currentPost, slug: e.target.value})} className="px-4 py-4 bg-slate-100 border border-slate-200 rounded-2xl outline-none text-slate-900" placeholder="url-slug" />
+                   </div>
+                   <input type="text" value={currentPost.imageUrl || ''} onChange={e => setCurrentPost({...currentPost, imageUrl: e.target.value})} className="w-full px-4 py-4 bg-slate-100 border border-slate-200 rounded-2xl outline-none text-slate-900" placeholder="Image URL" />
+                   <textarea value={currentPost.content} onChange={e => setCurrentPost({...currentPost, content: e.target.value})} className="w-full px-4 py-4 bg-slate-100 border border-slate-200 rounded-2xl outline-none min-h-[300px] text-slate-900" placeholder="Content (Markdown supported)..." />
                   <div className="flex justify-between">
-                     <select value={currentPost.status} onChange={e => setCurrentPost({...currentPost, status: e.target.value as any})} className="px-4 py-2 bg-white border border-slate-200 rounded-xl">
-                        <option value="draft">Draft</option>
-                        <option value="published">Published</option>
+                     <select value={currentPost.status} onChange={e => setCurrentPost({...currentPost, status: e.target.value as any})} className="px-4 py-2 bg-slate-100 border border-slate-200 rounded-xl text-slate-900">
+                        <option value="draft" className="bg-slate-100">Draft</option>
+                        <option value="published" className="bg-slate-100">Published</option>
                      </select>
                      <div className="flex gap-3">
-                        <button onClick={() => setIsEditingPost(false)} className="px-6 py-2 text-slate-500 font-bold">Cancel</button>
-                        <button onClick={handleSaveBlogPost} className="bg-indigo-600 text-white px-8 py-2 rounded-xl font-bold shadow-lg">Save Post</button>
+                        <button onClick={() => setIsEditingPost(false)} className="px-6 py-2 text-slate-500 font-bold hover:text-slate-700">Cancel</button>
+                        <button onClick={handleSaveBlogPost} className="bg-indigo-600 text-white px-8 py-2 rounded-xl font-bold shadow-lg hover:bg-indigo-700 transition">Save Post</button>
                      </div>
                   </div>
                </div>
