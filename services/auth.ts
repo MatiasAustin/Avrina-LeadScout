@@ -78,6 +78,7 @@ export const register = async (name: string, email: string, password: string): P
 };
 
 export const login = async (email: string, password: string): Promise<User> => {
+  // Kalau Supabase TIDAK dikonfigurasi, izinkan fallback local-admin untuk testing lokal
   if (!isSupabaseConfigured) {
     if (email === 'admin@avrina.com' && password === 'Aois83bi%^6as') {
        return createLocalAdmin();
@@ -85,6 +86,8 @@ export const login = async (email: string, password: string): Promise<User> => {
     throw new Error("Backend not connected. Use 'admin@avrina.com' to test Admin Panel locally.");
   }
 
+  // Kalau Supabase SUDAH dikonfigurasi, SELALU gunakan Supabase auth
+  // TIDAK ada fallback ke local-admin — agar data selalu tersimpan ke cloud
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password
@@ -94,11 +97,7 @@ export const login = async (email: string, password: string): Promise<User> => {
     return mapSupabaseUser(data.user);
   }
 
-  if (email === 'admin@avrina.com' && password === 'Aois83bi%^6as') {
-     console.warn("Logged in via Backdoor due to Supabase auth failure.");
-     return createLocalAdmin();
-  }
-
+  // Lempar error asli dari Supabase (misal: Invalid credentials, Email not confirmed, dll)
   if (error) throw error;
   throw new Error("Login failed");
 };
