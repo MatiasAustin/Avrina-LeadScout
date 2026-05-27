@@ -45,6 +45,10 @@ export const useLeads = () => {
           url: d.url,
           platform: d.platform,
           niche: d.niche,
+          targetEmail: d.target_email,
+          value: d.value,
+          currency: d.currency,
+          dealType: d.deal_type,
           dateAdded: d.created_at,
           status: d.status,
           notes: d.notes,
@@ -79,6 +83,10 @@ export const useLeads = () => {
           url: lead.url,
           platform: lead.platform,
           niche: lead.niche,
+          target_email: lead.targetEmail,
+          value: lead.value,
+          currency: lead.currency,
+          deal_type: lead.dealType,
           status: lead.status,
           notes: lead.notes,
           pain_points: lead.painPoints,
@@ -106,11 +114,20 @@ export const useLeads = () => {
       localStorage.setItem('leadscout_leads_guest', JSON.stringify(updated));
     } else {
       const dbUpdates: any = {};
-      if (updates.status) dbUpdates.status = updates.status;
-      if (updates.analysis) dbUpdates.analysis = updates.analysis;
-      if (updates.outreach) dbUpdates.outreach = updates.outreach;
-      if (updates.notes) dbUpdates.notes = updates.notes;
-      if (updates.painPoints) dbUpdates.pain_points = updates.painPoints;
+      if (updates.status !== undefined) dbUpdates.status = updates.status;
+      if (updates.analysis !== undefined) dbUpdates.analysis = updates.analysis;
+      if (updates.outreach !== undefined) dbUpdates.outreach = updates.outreach;
+      if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+      if (updates.painPoints !== undefined) dbUpdates.pain_points = updates.painPoints;
+      
+      if (updates.name !== undefined) dbUpdates.name = updates.name;
+      if (updates.url !== undefined) dbUpdates.url = updates.url;
+      if (updates.platform !== undefined) dbUpdates.platform = updates.platform;
+      if (updates.niche !== undefined) dbUpdates.niche = updates.niche;
+      if (updates.targetEmail !== undefined) dbUpdates.target_email = updates.targetEmail;
+      if (updates.value !== undefined) dbUpdates.value = updates.value;
+      if (updates.currency !== undefined) dbUpdates.currency = updates.currency;
+      if (updates.dealType !== undefined) dbUpdates.deal_type = updates.dealType;
 
       const { error } = await supabase
         .from('leads')

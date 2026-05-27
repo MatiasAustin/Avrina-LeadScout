@@ -503,6 +503,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
         </div>
         <div className="flex items-center gap-2">
           <input type="file" ref={cvProfileInputRef} className="hidden" accept=".pdf,.doc,.docx" onChange={handleCVProfileUpload} />
+          <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*,video/*" onChange={handleFileChange} />
           <button onClick={() => cvProfileInputRef.current?.click()} className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg" title="Sync Profile CV"><FileText className="w-5 h-5" /></button>
           <button onClick={() => setIsHelpOpen(true)} className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg" title="Guide"><HelpCircle className="w-5 h-5" /></button>
           <button onClick={() => setIsFormOpen(true)} className="bg-slate-800 text-slate-50 px-4 py-2 rounded-lg flex items-center gap-2 font-bold shadow-sm"><Plus className="w-4 h-4" /> {t('leads_btn_add')}</button>
