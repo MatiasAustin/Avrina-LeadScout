@@ -46,6 +46,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
   // New Lead Form State
   const [newLeadName, setNewLeadName] = useState('');
   const [newLeadUrl, setNewLeadUrl] = useState('');
+  const [newLeadSocialUrl, setNewLeadSocialUrl] = useState('');
   const [newLeadPlatform, setNewLeadPlatform] = useState<Platform>(Platform.Google);
   const [newLeadNotes, setNewLeadNotes] = useState('');
   const [newLeadPainPoints, setNewLeadPainPoints] = useState('');
@@ -96,6 +97,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
       id: crypto.randomUUID(),
       name: newLeadName,
       url: newLeadUrl,
+      socialMediaUrl: newLeadSocialUrl,
       platform: newLeadPlatform,
       niche: newLeadNiche,
       dateAdded: new Date().toISOString(),
@@ -112,6 +114,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
   const resetForm = () => {
     setNewLeadName('');
     setNewLeadUrl('');
+    setNewLeadSocialUrl('');
     setNewLeadNotes('');
     setNewLeadPainPoints('');
     setNewLeadTargetEmail('');
@@ -324,6 +327,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
       updateLead(editingLead.id, {
         name: editingLead.name,
         url: editingLead.url,
+        socialMediaUrl: editingLead.socialMediaUrl,
         notes: editingLead.notes,
         painPoints: editingLead.painPoints,
         platform: editingLead.platform,
@@ -687,11 +691,12 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="font-bold text-slate-800">{lead.name}</h3>
-                  <a href={lead.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-slate-400 hover:text-slate-800"><ExternalLink className="w-3.5 h-3.5" /></a>
+                  <a href={lead.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-slate-400 hover:text-slate-800" title="Website"><ExternalLink className="w-3.5 h-3.5" /></a>
+                  {lead.socialMediaUrl && <a href={lead.socialMediaUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-blue-400 hover:text-blue-600" title="Social Media"><Smartphone className="w-3.5 h-3.5" /></a>}
                   <button 
                     onClick={(e) => { 
                       e.stopPropagation(); 
-                      const text = `1. Nama brand / akun: ${lead.name}\n2. Platform outreach: ${lead.platform}\n3. Website / landing page: ${lead.url || '-'}\n4. Screenshot profil atau branding: ${lead.notes ? 'Ada notes' : 'Tidak ada'}\n5. Email target: ${lead.targetEmail || '-'}\n6. Industri / niche: ${lead.niche || '-'}`; 
+                      const text = `1. Nama brand / akun: ${lead.name}\n2. Platform outreach: ${lead.platform}\n3. Website / landing page: ${lead.url || '-'}\n4. Social Media: ${lead.socialMediaUrl || '-'}\n5. Screenshot profil atau branding: ${lead.notes ? 'Ada notes' : 'Tidak ada'}\n6. Email target: ${lead.targetEmail || '-'}\n7. Industri / niche: ${lead.niche || '-'}`; 
                       navigator.clipboard.writeText(text); 
                       alert("Info Target disalin ke clipboard!"); 
                     }} 
@@ -826,7 +831,10 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                     {Object.values(Platform).map(p => <option key={p} value={p}>{p}</option>)}
                  </select>
                </div>
-               <input type="url" required value={newLeadUrl} onChange={e => setNewLeadUrl(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Website / landing page" />
+               <div className="grid grid-cols-2 gap-3">
+                 <input type="url" required value={newLeadUrl} onChange={e => setNewLeadUrl(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Website / landing page" />
+                 <input type="url" value={newLeadSocialUrl} onChange={e => setNewLeadSocialUrl(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Link Socmed (IG/Threads/X)" />
+               </div>
                <div className="grid grid-cols-2 gap-3">
                  <input type="email" value={newLeadTargetEmail} onChange={e => setNewLeadTargetEmail(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Email target (optional)" />
                  <input type="text" required value={newLeadNiche} onChange={e => setNewLeadNiche(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Industri / niche" />
@@ -845,7 +853,10 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
             <div className="flex justify-between items-center mb-6"><h3 className="text-xl font-bold">Edit Lead</h3><button onClick={() => setEditingLead(null)}><XCircle className="w-6 h-6 text-slate-300" /></button></div>
             <div className="space-y-4">
               <input type="text" value={editingLead.name} onChange={e => setEditingLead({...editingLead, name: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Nama brand / akun" />
-              <input type="url" value={editingLead.url} onChange={e => setEditingLead({...editingLead, url: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Website / landing page" />
+              <div className="grid grid-cols-2 gap-3">
+                <input type="url" value={editingLead.url} onChange={e => setEditingLead({...editingLead, url: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Website / landing page" />
+                <input type="url" value={editingLead.socialMediaUrl || ''} onChange={e => setEditingLead({...editingLead, socialMediaUrl: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Link Socmed (IG/Threads/X)" />
+              </div>
               <div className="grid grid-cols-2 gap-3">
                  <input type="email" value={editingLead.targetEmail || ''} onChange={e => setEditingLead({...editingLead, targetEmail: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Email target (optional)" />
                  <input type="text" value={editingLead.niche} onChange={e => setEditingLead({...editingLead, niche: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Industri / niche" />

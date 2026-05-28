@@ -57,6 +57,7 @@ export interface Lead {
   id: string;
   name: string; // Company or Person Name
   url: string;
+  socialMediaUrl?: string; // Khusus link social media terpisah
   platform: Platform;
   niche: string; // The niche this lead belongs to
   dateAdded: string; // ISO string

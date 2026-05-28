@@ -6,6 +6,7 @@ const mapRow = (d: any): Lead => ({
   id: d.id,
   name: d.name,
   url: d.url,
+  socialMediaUrl: d.social_media_url,
   platform: d.platform,
   niche: d.niche,
   targetEmail: d.target_email,
@@ -146,6 +147,7 @@ export const useLeads = () => {
           user_id: userData.user.id,
           name: lead.name,
           url: lead.url,
+          social_media_url: lead.socialMediaUrl,
           platform: lead.platform,
           niche: lead.niche,
           target_email: lead.targetEmail,
@@ -190,6 +192,7 @@ export const useLeads = () => {
       if (updates.painPoints !== undefined) dbUpdates.pain_points = updates.painPoints;
       if (updates.name !== undefined)      dbUpdates.name = updates.name;
       if (updates.url !== undefined)       dbUpdates.url = updates.url;
+      if (updates.socialMediaUrl !== undefined) dbUpdates.social_media_url = updates.socialMediaUrl;
       if (updates.platform !== undefined)  dbUpdates.platform = updates.platform;
       if (updates.niche !== undefined)     dbUpdates.niche = updates.niche;
       if (updates.targetEmail !== undefined) dbUpdates.target_email = updates.targetEmail;
