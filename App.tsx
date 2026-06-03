@@ -106,7 +106,19 @@ const LoveBubbles = () => {
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
-  const [activeTab, setActiveTab] = useState<'landing' | 'blog' | 'dashboard' | 'strategy' | 'leads' | 'community' | 'admin' | 'profile' | 'cvMatcher' | 'auth'>('landing');
+  const [activeTab, setActiveTabState] = useState<'landing' | 'blog' | 'dashboard' | 'strategy' | 'leads' | 'community' | 'admin' | 'profile' | 'cvMatcher' | 'auth'>('landing');
+
+  // Wrapper to persist activeTab to localStorage
+  const setActiveTab = (tabOrFn: typeof activeTab | ((prev: typeof activeTab) => typeof activeTab)) => {
+    setActiveTabState(prev => {
+      const newTab = typeof tabOrFn === 'function' ? tabOrFn(prev) : tabOrFn;
+      // Only persist authenticated tabs (not landing/auth/blog)
+      if (newTab !== 'landing' && newTab !== 'auth') {
+        localStorage.setItem('leadscout_activeTab', newTab);
+      }
+      return newTab;
+    });
+  };
   const [config, setConfig] = useState<AppConfig>({ donationLink: '', appName: 'Avrina LeadScout' });
   const [isRecovering, setIsRecovering] = useState(false);
   
@@ -206,7 +218,13 @@ const App: React.FC = () => {
         setIsRecovering(true);
         setActiveTab('auth');
       } else {
-        setActiveTab((prev) => prev === 'auth' ? 'auth' : 'strategy');
+        const savedTab = localStorage.getItem('leadscout_activeTab') as typeof activeTab | null;
+        const validTabs = ['dashboard', 'strategy', 'leads', 'community', 'profile', 'cvMatcher', 'blog', 'admin'];
+        if (savedTab && validTabs.includes(savedTab)) {
+          setActiveTab(savedTab);
+        } else {
+          setActiveTab((prev) => prev === 'auth' ? 'auth' : 'strategy');
+        }
       }
     }
     const appConfig = await getConfig();
@@ -227,6 +245,7 @@ const App: React.FC = () => {
     setNiche('');
     setBio('');
     setIsRecovering(false);
+    localStorage.removeItem('leadscout_activeTab');
     setActiveTab('landing');
   };
 
