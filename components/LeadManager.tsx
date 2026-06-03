@@ -696,7 +696,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                   <button 
                     onClick={(e) => { 
                       e.stopPropagation(); 
-                      const text = `1. Nama brand / akun: ${lead.name}\n2. Platform outreach: ${lead.platform}\n3. Website / landing page: ${lead.url || '-'}\n4. Social Media: ${lead.socialMediaUrl || '-'}\n5. Screenshot profil atau branding: ${lead.notes ? 'Ada notes' : 'Tidak ada'}\n6. Email target: ${lead.targetEmail || '-'}\n7. Industri / niche: ${lead.niche || '-'}`; 
+                      const text = `1. Nama brand / akun: ${lead.name}\n2. Platform outreach: ${lead.platform}\n3. Website / landing page: ${lead.url || '-'}\n4. Social Media: ${lead.socialMediaUrl || '-'}\n5. Screenshot profil atau branding: ${lead.notes ? 'Ada notes' : 'Tidak ada'}\n6. Email target: ${lead.targetEmail || '-'}\n7. Industri / niche: ${lead.niche || '-'}${lead.notes ? `\n\n📝 Notes:\n${lead.notes}` : ''}${lead.painPoints ? `\n\n⚠️ Problems / Pain Points:\n${lead.painPoints}` : ''}`; 
                       navigator.clipboard.writeText(text); 
                       alert("Info Target disalin ke clipboard!"); 
                     }} 
@@ -832,7 +832,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                  </select>
                </div>
                <div className="grid grid-cols-2 gap-3">
-                 <input type="url" required value={newLeadUrl} onChange={e => setNewLeadUrl(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Website / landing page" />
+                 <input type="url" value={newLeadUrl} onChange={e => setNewLeadUrl(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Website / landing page (opsional)" />
                  <input type="url" value={newLeadSocialUrl} onChange={e => setNewLeadSocialUrl(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Link Socmed (IG/Threads/X)" />
                </div>
                <div className="grid grid-cols-2 gap-3">
