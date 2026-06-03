@@ -408,6 +408,12 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
       }
     };
 
+    const handleCopyInfo = (text: string, label: string) => {
+      if (!text) return;
+      navigator.clipboard.writeText(text);
+      alert(`${label} disalin ke clipboard!`);
+    };
+
     return (
       <div className="space-y-6 animate-fade-in">
         {lead.status === LeadStatus.WON && (
@@ -449,11 +455,48 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
           </div>
         )}
 
+        {/* Quick Copy Info */}
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+          <div className="space-y-1">
+            <p className="text-[10px] font-bold text-slate-500 uppercase">Brand / Name</p>
+            <div className="flex items-center justify-between bg-white border border-slate-200 p-2 rounded-lg">
+              <span className="truncate mr-2 font-medium text-slate-700">{lead.name}</span>
+              <button onClick={() => handleCopyInfo(lead.name, "Brand Name")} className="text-slate-400 hover:text-indigo-600 transition" title="Copy Brand Name"><Copy className="w-3.5 h-3.5" /></button>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] font-bold text-slate-500 uppercase">Email Target</p>
+            <div className="flex items-center justify-between bg-white border border-slate-200 p-2 rounded-lg">
+              <span className="truncate mr-2 font-medium text-slate-700">{lead.targetEmail || '-'}</span>
+              <button onClick={() => handleCopyInfo(lead.targetEmail || '', "Email")} disabled={!lead.targetEmail} className="text-slate-400 hover:text-indigo-600 transition disabled:opacity-50" title="Copy Email"><Copy className="w-3.5 h-3.5" /></button>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] font-bold text-slate-500 uppercase">Social Media</p>
+            <div className="flex items-center justify-between bg-white border border-slate-200 p-2 rounded-lg">
+              <span className="truncate mr-2 font-medium text-slate-700">{lead.socialMediaUrl || '-'}</span>
+              <button onClick={() => handleCopyInfo(lead.socialMediaUrl || '', "Social Media")} disabled={!lead.socialMediaUrl} className="text-slate-400 hover:text-indigo-600 transition disabled:opacity-50" title="Copy Social Media"><Copy className="w-3.5 h-3.5" /></button>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] font-bold text-slate-500 uppercase">Website</p>
+            <div className="flex items-center justify-between bg-white border border-slate-200 p-2 rounded-lg">
+              <span className="truncate mr-2 font-medium text-slate-700">{lead.url || '-'}</span>
+              <button onClick={() => handleCopyInfo(lead.url || '', "Website")} disabled={!lead.url} className="text-slate-400 hover:text-indigo-600 transition disabled:opacity-50" title="Copy Website"><Copy className="w-3.5 h-3.5" /></button>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
-            <h5 className="font-semibold text-slate-700 mb-2 flex items-center gap-2">
-              <UserCircle className="w-4 h-4" /> About / Bio
-            </h5>
+            <div className="flex justify-between items-center mb-2">
+              <h5 className="font-semibold text-slate-700 flex items-center gap-2">
+                <UserCircle className="w-4 h-4" /> About / Bio
+              </h5>
+              <button onClick={() => handleCopyInfo(lead.notes || '', "Notes")} disabled={!lead.notes} className="p-1 text-slate-400 hover:text-indigo-600 transition disabled:opacity-50" title="Copy Notes">
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+            </div>
             <textarea 
               value={lead.notes || ""} 
               onChange={e => updateLead(lead.id, { notes: e.target.value })}
@@ -462,9 +505,14 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
             />
           </div>
           <div>
-            <h5 className="font-semibold text-red-800 mb-2 flex items-center gap-2">
-              <Stethoscope className="w-4 h-4" /> Pain Points
-            </h5>
+            <div className="flex justify-between items-center mb-2">
+              <h5 className="font-semibold text-red-800 flex items-center gap-2">
+                <Stethoscope className="w-4 h-4" /> Pain Points
+              </h5>
+              <button onClick={() => handleCopyInfo(lead.painPoints || '', "Pain Points")} disabled={!lead.painPoints} className="p-1 text-red-400 hover:text-red-700 transition disabled:opacity-50" title="Copy Pain Points">
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+            </div>
             <textarea 
               value={lead.painPoints || ""} 
               onChange={e => updateLead(lead.id, { painPoints: e.target.value })}
