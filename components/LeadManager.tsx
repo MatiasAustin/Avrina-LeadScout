@@ -766,6 +766,24 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                     {new Date(lead.dateAdded).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
+                {lead.notes && (
+                  <div className="mt-2 text-xs text-slate-500 flex items-start gap-2 group/note">
+                    <div className="flex-1 line-clamp-2 italic">
+                      "{lead.notes}"
+                    </div>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(lead.notes || '');
+                        alert('Notes disalin ke clipboard!');
+                      }}
+                      className="opacity-0 group-hover/note:opacity-100 p-1 text-slate-400 hover:text-indigo-600 transition shrink-0"
+                      title="Copy Notes"
+                    >
+                      <Copy className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 <button onClick={(e) => { e.stopPropagation(); setEditingLead(lead); }} className="p-2 text-slate-400 hover:text-indigo-600 md:opacity-0 md:group-hover:opacity-100 transition"><Edit3 className="w-4 h-4" /></button>
