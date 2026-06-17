@@ -1,18 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLeads } from '../hooks/useLeads';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { LeadStatus, User } from '../types';
-import { TrendingUp, Target, DollarSign, Calendar, Zap } from 'lucide-react';
+import { TrendingUp, Target, DollarSign, Calendar, Zap, MessageCircle, Filter } from 'lucide-react';
 
 interface Props {
   user?: User | null;
 }
 
 const Dashboard: React.FC<Props> = ({ user }) => {
+  const [timeRange, setTimeRange] = useState<'all' | 'day' | 'week' | 'month'>('all');
   const { getStats, leads } = useLeads();
-  const { total, byStatus, winRate } = getStats();
+  const { total, byStatus, winRate, replyRate } = getStats(timeRange);
 
-  const totalRevenue = leads
+  const now = new Date();
+  const timeRangeFilteredLeads = leads.filter(lead => {
+    if (timeRange === 'all') return true;
+    const leadDate = new Date(lead.dateAdded);
+    const diffTime = Math.abs(now.getTime() - leadDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (timeRange === 'day') return diffDays <= 1;
+    if (timeRange === 'week') return diffDays <= 7;
+    if (timeRange === 'month') return diffDays <= 30;
+    return true;
+  });
+
+  const totalRevenue = timeRangeFilteredLeads
     .filter(l => l.status === LeadStatus.WON)
     .reduce((sum, l) => sum + (Number(l.value) || 0), 0);
 
@@ -43,7 +57,24 @@ const Dashboard: React.FC<Props> = ({ user }) => {
 
   return (
     <div className="space-y-8 mb-8 animate-fade-in">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50 p-4 rounded-2xl shadow-sm border border-slate-200">
+        <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
+          <Filter className="w-4 h-4 text-indigo-500" /> Statistic Filter
+        </h3>
+        <div className="flex bg-slate-100 p-1 rounded-xl overflow-x-auto max-w-full">
+          {(['all', 'day', 'week', 'month'] as const).map(t => (
+            <button 
+              key={t}
+              onClick={() => setTimeRange(t)}
+              className={`px-4 py-1.5 text-xs font-black rounded-lg transition whitespace-nowrap ${timeRange === t ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              {t === 'all' ? 'All Time' : t === 'day' ? 'Daily' : t === 'week' ? 'Weekly' : 'Monthly'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <div className="bg-slate-50 p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center">
           <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">
             <Zap className="w-4 h-4 text-amber-500" /> Total Leads
@@ -51,6 +82,13 @@ const Dashboard: React.FC<Props> = ({ user }) => {
           <span className="text-4xl font-black text-slate-800">{total}</span>
         </div>
         
+        <div className="bg-slate-50 p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center">
+          <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">
+            <MessageCircle className="w-4 h-4 text-blue-500" /> Reply Rate
+          </div>
+          <span className="text-4xl font-black text-slate-800">{replyRate}%</span>
+        </div>
+
         <div className="bg-slate-50 p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center">
           <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">
             <TrendingUp className="w-4 h-4 text-indigo-500" /> Win Rate

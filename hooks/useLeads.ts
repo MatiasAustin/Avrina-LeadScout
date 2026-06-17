@@ -219,9 +219,25 @@ export const useLeads = () => {
     }
   };
 
-  const getStats = () => {
-    const total = leads.length;
-    const byStatus = leads.reduce((acc, lead) => {
+  const getStats = (timeRange: 'all' | 'day' | 'week' | 'month' = 'all') => {
+    let filteredLeads = leads;
+
+    if (timeRange !== 'all') {
+      const now = new Date();
+      filteredLeads = leads.filter(lead => {
+        const leadDate = new Date(lead.dateAdded);
+        const diffTime = Math.abs(now.getTime() - leadDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (timeRange === 'day') return diffDays <= 1;
+        if (timeRange === 'week') return diffDays <= 7;
+        if (timeRange === 'month') return diffDays <= 30;
+        return true;
+      });
+    }
+
+    const total = filteredLeads.length;
+    const byStatus = filteredLeads.reduce((acc, lead) => {
       acc[lead.status] = (acc[lead.status] || 0) + 1;
       return acc;
     }, {} as Record<LeadStatus, number>);
@@ -229,7 +245,12 @@ export const useLeads = () => {
     const closed = (byStatus[LeadStatus.WON] || 0) + (byStatus[LeadStatus.LOST] || 0);
     const winRate = closed > 0 ? Math.round(((byStatus[LeadStatus.WON] || 0) / closed) * 100) : 0;
 
-    return { total, byStatus, winRate };
+    const repliedCount = (byStatus[LeadStatus.REPLIED] || 0) + 
+                         (byStatus[LeadStatus.NEGOTIATING] || 0) + 
+                         (byStatus[LeadStatus.WON] || 0);
+    const replyRate = total > 0 ? Math.round((repliedCount / total) * 100) : 0;
+
+    return { total, byStatus, winRate, replyRate };
   };
 
   return { leads, addLead, updateLead, deleteLead, getStats, loading };

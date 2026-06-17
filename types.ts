@@ -15,6 +15,7 @@ export enum LeadStatus {
   NEW = 'To Do',         // Baru masuk database
   QUALIFIED = 'Qualified', // AI bilang cocok
   CONTACTED = 'Contacted', // DM Sent
+  REPLIED = 'Reply',       // Balasan diterima
   NEGOTIATING = 'Negotiating', // Balas-balasan
   WON = 'Client',        // Deal
   LOST = 'Lost'          // Ditolak/Ghosting
