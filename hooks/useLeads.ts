@@ -19,6 +19,7 @@ const mapRow = (d: any): Lead => ({
   painPoints: d.pain_points,
   analysis: d.analysis,
   outreach: d.outreach,
+  outreachChannel: d.outreach_channel,
 });
 
 export const useLeads = () => {
@@ -159,6 +160,7 @@ export const useLeads = () => {
           pain_points: lead.painPoints,
           analysis: lead.analysis,
           outreach: lead.outreach,
+          outreach_channel: lead.outreachChannel,
         })
         .select()
         .single();
@@ -199,6 +201,7 @@ export const useLeads = () => {
       if (updates.value !== undefined)     dbUpdates.value = updates.value;
       if (updates.currency !== undefined)  dbUpdates.currency = updates.currency;
       if (updates.dealType !== undefined)  dbUpdates.deal_type = updates.dealType;
+      if (updates.outreachChannel !== undefined) dbUpdates.outreach_channel = updates.outreachChannel;
 
       const { error } = await supabase.from('leads').update(dbUpdates).eq('id', id);
       if (error) console.error('Update failed:', error);

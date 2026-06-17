@@ -76,6 +76,7 @@ export interface Lead {
   outreach?: OutreachDraft;
   
   targetEmail?: string;
+  outreachChannel?: 'DM' | 'Email' | 'Comment';
 }
 
 export interface UserProfile {

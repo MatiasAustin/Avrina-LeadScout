@@ -336,7 +336,8 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
         currency: editingLead.currency,
         dealType: editingLead.dealType,
         targetEmail: editingLead.targetEmail,
-        niche: editingLead.niche
+        niche: editingLead.niche,
+        outreachChannel: editingLead.outreachChannel
       });
       setEditingLead(null);
     }
@@ -788,6 +789,17 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
               </div>
               <div className="flex items-center gap-3">
                 <button onClick={(e) => { e.stopPropagation(); setEditingLead(lead); }} className="p-2 text-slate-400 hover:text-indigo-600 md:opacity-0 md:group-hover:opacity-100 transition"><Edit3 className="w-4 h-4" /></button>
+                <select 
+                  value={lead.outreachChannel || ''} 
+                  onClick={e => e.stopPropagation()} 
+                  onChange={e => updateLead(lead.id, { outreachChannel: e.target.value as any })} 
+                  className="text-[10px] font-bold px-3 py-1 rounded-full outline-none border border-slate-200 cursor-pointer bg-slate-50 text-slate-600"
+                >
+                  <option value="" disabled>Channel</option>
+                  <option value="DM">DM</option>
+                  <option value="Email">Email</option>
+                  <option value="Comment">Comment</option>
+                </select>
                 <select value={lead.status} onClick={e => e.stopPropagation()} onChange={e => updateLead(lead.id, { status: e.target.value as LeadStatus })} className={`text-[10px] font-bold px-3 py-1 rounded-full outline-none border-none cursor-pointer ${getStatusColor(lead.status)}`}>
                   {Object.values(LeadStatus).map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -927,6 +939,14 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
               <div className="grid grid-cols-2 gap-3">
                  <input type="email" value={editingLead.targetEmail || ''} onChange={e => setEditingLead({...editingLead, targetEmail: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Email target (optional)" />
                  <input type="text" value={editingLead.niche} onChange={e => setEditingLead({...editingLead, niche: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Industri / niche" />
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                 <select value={editingLead.outreachChannel || ''} onChange={e => setEditingLead({...editingLead, outreachChannel: e.target.value as any})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-bold text-slate-600">
+                    <option value="" disabled>Select Execution Channel</option>
+                    <option value="DM">DM</option>
+                    <option value="Email">Email</option>
+                    <option value="Comment">Comment</option>
+                 </select>
               </div>
               <div className={`p-4 rounded-xl space-y-4 border transition-all ${editingLead.status === LeadStatus.WON ? 'bg-indigo-50/50 border-indigo-200' : 'bg-slate-50 border-slate-200'}`}>
                 <div className="flex justify-between items-center">

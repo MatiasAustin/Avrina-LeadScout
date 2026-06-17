@@ -145,21 +145,21 @@ const Dashboard: React.FC<Props> = ({ user }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
            <TargetProgress 
              label="Daily Target" 
-             current={dailyStats.byStatus[LeadStatus.QUALIFIED] || 0} 
+             current={dailyStats.total} 
              target={user?.dailyTarget || 5} 
              icon={Zap} 
              color="bg-amber-500" 
            />
            <TargetProgress 
              label="Weekly Target" 
-             current={weeklyStats.byStatus[LeadStatus.QUALIFIED] || 0} 
+             current={weeklyStats.total} 
              target={user?.weeklyTarget || 25} 
              icon={Calendar} 
              color="bg-indigo-500" 
            />
            <TargetProgress 
              label="Monthly Target" 
-             current={monthlyStats.byStatus[LeadStatus.QUALIFIED] || 0} 
+             current={monthlyStats.total} 
              target={user?.monthlyTarget || 100} 
              icon={TrendingUp} 
              color="bg-emerald-500" 
