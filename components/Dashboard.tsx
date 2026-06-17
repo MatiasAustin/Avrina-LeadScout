@@ -13,6 +13,10 @@ const Dashboard: React.FC<Props> = ({ user }) => {
   const { getStats, leads } = useLeads();
   const { total, byStatus, winRate, replyRate } = getStats(timeRange);
 
+  const dailyStats = getStats('day');
+  const weeklyStats = getStats('week');
+  const monthlyStats = getStats('month');
+
   const now = new Date();
   const timeRangeFilteredLeads = leads.filter(lead => {
     if (timeRange === 'all') return true;
@@ -141,21 +145,21 @@ const Dashboard: React.FC<Props> = ({ user }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
            <TargetProgress 
              label="Daily Target" 
-             current={byStatus[LeadStatus.QUALIFIED] || 0} 
+             current={dailyStats.byStatus[LeadStatus.QUALIFIED] || 0} 
              target={user?.dailyTarget || 5} 
              icon={Zap} 
              color="bg-amber-500" 
            />
            <TargetProgress 
              label="Weekly Target" 
-             current={byStatus[LeadStatus.QUALIFIED] || 0} 
+             current={weeklyStats.byStatus[LeadStatus.QUALIFIED] || 0} 
              target={user?.weeklyTarget || 25} 
              icon={Calendar} 
              color="bg-indigo-500" 
            />
            <TargetProgress 
              label="Monthly Target" 
-             current={byStatus[LeadStatus.QUALIFIED] || 0} 
+             current={monthlyStats.byStatus[LeadStatus.QUALIFIED] || 0} 
              target={user?.monthlyTarget || 100} 
              icon={TrendingUp} 
              color="bg-emerald-500" 
