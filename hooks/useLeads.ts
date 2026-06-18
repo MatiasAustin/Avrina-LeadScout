@@ -160,7 +160,7 @@ export const useLeads = () => {
           pain_points: lead.painPoints,
           analysis: lead.analysis,
           outreach: lead.outreach,
-          outreach_channel: lead.outreachChannel ? lead.outreachChannel.join(',') : null,
+          ...(lead.outreachChannel && lead.outreachChannel.length > 0 ? { outreach_channel: lead.outreachChannel.join(',') } : {})
         })
         .select()
         .single();
@@ -173,6 +173,7 @@ export const useLeads = () => {
         });
       } else {
         console.error('Supabase insert error:', error);
+        alert('Gagal menambah lead: ' + (error?.message || JSON.stringify(error)));
       }
     }
   };
@@ -201,10 +202,19 @@ export const useLeads = () => {
       if (updates.value !== undefined)     dbUpdates.value = updates.value;
       if (updates.currency !== undefined)  dbUpdates.currency = updates.currency;
       if (updates.dealType !== undefined)  dbUpdates.deal_type = updates.dealType;
-      if (updates.outreachChannel !== undefined) dbUpdates.outreach_channel = updates.outreachChannel.join(',');
+      if (updates.outreachChannel !== undefined) {
+        if (updates.outreachChannel.length > 0) {
+          dbUpdates.outreach_channel = updates.outreachChannel.join(',');
+        } else {
+          dbUpdates.outreach_channel = null;
+        }
+      }
 
       const { error } = await supabase.from('leads').update(dbUpdates).eq('id', id);
-      if (error) console.error('Update failed:', error);
+      if (error) {
+        console.error('Update failed:', error);
+        alert('Gagal mengupdate lead: ' + (error?.message || JSON.stringify(error)));
+      }
     }
   };
 

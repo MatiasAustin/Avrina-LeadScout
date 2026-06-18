@@ -787,7 +787,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center flex-wrap gap-2 md:gap-3 mt-3 md:mt-0 w-full md:w-auto justify-start md:justify-end">
                 <button onClick={(e) => { e.stopPropagation(); setEditingLead(lead); }} className="p-2 text-slate-400 hover:text-indigo-600 md:opacity-0 md:group-hover:opacity-100 transition"><Edit3 className="w-4 h-4" /></button>
                 <div className="flex gap-1 items-center" onClick={e => e.stopPropagation()}>
                   {['DM', 'Email', 'Comment'].map(ch => {
