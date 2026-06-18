@@ -789,17 +789,25 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
               </div>
               <div className="flex items-center gap-3">
                 <button onClick={(e) => { e.stopPropagation(); setEditingLead(lead); }} className="p-2 text-slate-400 hover:text-indigo-600 md:opacity-0 md:group-hover:opacity-100 transition"><Edit3 className="w-4 h-4" /></button>
-                <select 
-                  value={lead.outreachChannel || ''} 
-                  onClick={e => e.stopPropagation()} 
-                  onChange={e => updateLead(lead.id, { outreachChannel: e.target.value as any })} 
-                  className="text-[10px] font-bold px-3 py-1 rounded-full outline-none border border-slate-200 cursor-pointer bg-slate-50 text-slate-600"
-                >
-                  <option value="" disabled>Channel</option>
-                  <option value="DM">DM</option>
-                  <option value="Email">Email</option>
-                  <option value="Comment">Comment</option>
-                </select>
+                <div className="flex gap-1 items-center" onClick={e => e.stopPropagation()}>
+                  {['DM', 'Email', 'Comment'].map(ch => {
+                    const isSelected = (lead.outreachChannel || []).includes(ch);
+                    return (
+                      <button 
+                        key={ch}
+                        onClick={(e) => {
+                           e.stopPropagation();
+                           const current = lead.outreachChannel || [];
+                           const next = isSelected ? current.filter(c => c !== ch) : [...current, ch];
+                           updateLead(lead.id, { outreachChannel: next });
+                        }}
+                        className={`text-[9px] font-bold px-2 py-1 rounded-full border transition-colors ${isSelected ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100'}`}
+                      >
+                        {ch}
+                      </button>
+                    );
+                  })}
+                </div>
                 <select value={lead.status} onClick={e => e.stopPropagation()} onChange={e => updateLead(lead.id, { status: e.target.value as LeadStatus })} className={`text-[10px] font-bold px-3 py-1 rounded-full outline-none border-none cursor-pointer ${getStatusColor(lead.status)}`}>
                   {Object.values(LeadStatus).map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -941,12 +949,26 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                  <input type="text" value={editingLead.niche} onChange={e => setEditingLead({...editingLead, niche: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" placeholder="Industri / niche" />
               </div>
               <div className="grid grid-cols-1 gap-3">
-                 <select value={editingLead.outreachChannel || ''} onChange={e => setEditingLead({...editingLead, outreachChannel: e.target.value as any})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-bold text-slate-600">
-                    <option value="" disabled>Select Execution Channel</option>
-                    <option value="DM">DM</option>
-                    <option value="Email">Email</option>
-                    <option value="Comment">Comment</option>
-                 </select>
+                 <div className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center flex-wrap gap-2">
+                    <span className="text-sm font-bold text-slate-500 mr-2">Channels:</span>
+                    {['DM', 'Email', 'Comment'].map(ch => {
+                      const isSelected = (editingLead.outreachChannel || []).includes(ch);
+                      return (
+                        <button
+                          key={ch}
+                          onClick={(e) => {
+                             e.preventDefault();
+                             const current = editingLead.outreachChannel || [];
+                             const next = isSelected ? current.filter(c => c !== ch) : [...current, ch];
+                             setEditingLead({...editingLead, outreachChannel: next});
+                          }}
+                          className={`text-xs font-bold px-3 py-1.5 rounded-full border transition-colors ${isSelected ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100 shadow-sm'}`}
+                        >
+                          {ch}
+                        </button>
+                      );
+                    })}
+                 </div>
               </div>
               <div className={`p-4 rounded-xl space-y-4 border transition-all ${editingLead.status === LeadStatus.WON ? 'bg-indigo-50/50 border-indigo-200' : 'bg-slate-50 border-slate-200'}`}>
                 <div className="flex justify-between items-center">
