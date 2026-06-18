@@ -19,7 +19,7 @@ const mapRow = (d: any): Lead => ({
   painPoints: d.pain_points,
   analysis: d.analysis,
   outreach: d.outreach,
-  outreachChannel: d.outreach_channel ? (typeof d.outreach_channel === 'string' ? d.outreach_channel.split(',').map((s: string) => s.trim()).filter(Boolean) : Array.isArray(d.outreach_channel) ? d.outreach_channel : [d.outreach_channel]) : [],
+  outreachChannel: (d.outreach_channel ? (typeof d.outreach_channel === 'string' ? d.outreach_channel.split(',').map((s: string) => s.trim()).filter(Boolean) : Array.isArray(d.outreach_channel) ? d.outreach_channel : [d.outreach_channel]) : null) || d.outreach?._outreachChannel || [],
 });
 
 export const useLeads = () => {
@@ -159,8 +159,12 @@ export const useLeads = () => {
           notes: lead.notes,
           pain_points: lead.painPoints,
           analysis: lead.analysis,
-          outreach: lead.outreach,
-          ...(lead.outreachChannel && lead.outreachChannel.length > 0 ? { outreach_channel: lead.outreachChannel.join(',') } : {})
+          outreach: {
+            ...lead.outreach,
+            ...(lead.outreachChannel && lead.outreachChannel.length > 0 ? { _outreachChannel: lead.outreachChannel } : {}),
+            ...(lead.socialMediaUrl ? { _socialMediaUrl: lead.socialMediaUrl } : {}),
+            ...(lead.targetEmail ? { _targetEmail: lead.targetEmail } : {})
+          }
         })
         .select()
         .single();
@@ -195,19 +199,22 @@ export const useLeads = () => {
       if (updates.painPoints !== undefined) dbUpdates.pain_points = updates.painPoints;
       if (updates.name !== undefined)      dbUpdates.name = updates.name;
       if (updates.url !== undefined)       dbUpdates.url = updates.url;
-      if (updates.socialMediaUrl !== undefined) dbUpdates.social_media_url = updates.socialMediaUrl;
       if (updates.platform !== undefined)  dbUpdates.platform = updates.platform;
       if (updates.niche !== undefined)     dbUpdates.niche = updates.niche;
-      if (updates.targetEmail !== undefined) dbUpdates.target_email = updates.targetEmail;
       if (updates.value !== undefined)     dbUpdates.value = updates.value;
       if (updates.currency !== undefined)  dbUpdates.currency = updates.currency;
       if (updates.dealType !== undefined)  dbUpdates.deal_type = updates.dealType;
-      if (updates.outreachChannel !== undefined) {
-        if (updates.outreachChannel.length > 0) {
-          dbUpdates.outreach_channel = updates.outreachChannel.join(',');
-        } else {
-          dbUpdates.outreach_channel = null;
-        }
+      
+      // Store fields that are missing in Supabase schema inside the 'outreach' JSONB column
+      if (updates.outreach !== undefined || updates.outreachChannel !== undefined || updates.socialMediaUrl !== undefined || updates.targetEmail !== undefined) {
+        const currentLead = leads.find(l => l.id === id);
+        const baseOutreach = updates.outreach !== undefined ? updates.outreach : (currentLead?.outreach || {});
+        dbUpdates.outreach = {
+          ...baseOutreach,
+          _outreachChannel: updates.outreachChannel !== undefined ? updates.outreachChannel : baseOutreach._outreachChannel,
+          _socialMediaUrl: updates.socialMediaUrl !== undefined ? updates.socialMediaUrl : baseOutreach._socialMediaUrl,
+          _targetEmail: updates.targetEmail !== undefined ? updates.targetEmail : baseOutreach._targetEmail,
+        };
       }
 
       const { error } = await supabase.from('leads').update(dbUpdates).eq('id', id);
