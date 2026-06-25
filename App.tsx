@@ -232,7 +232,7 @@ const App: React.FC = () => {
     
     // Set AI Config if available in DB
     if (appConfig.aiApiKey) {
-      setAiConfig(appConfig.aiApiKey);
+      setAiConfig(appConfig.aiApiKey, appConfig.aiProvider, appConfig.aiEndpoint, appConfig.aiModel);
     }
 
     setLoadingAuth(false);
@@ -273,7 +273,7 @@ const App: React.FC = () => {
   const handleConfigUpdate = (newConfig: AppConfig) => {
     setConfig(newConfig);
     if (newConfig.aiApiKey) {
-       setAiConfig(newConfig.aiApiKey);
+       setAiConfig(newConfig.aiApiKey, newConfig.aiProvider, newConfig.aiEndpoint, newConfig.aiModel);
     }
   };
 

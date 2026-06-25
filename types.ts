@@ -123,7 +123,9 @@ export interface AppConfig {
 
   // NEW AI & DB CONFIG
   aiApiKey?: string;
-  aiProvider?: 'google' | 'openai';
+  aiProvider?: 'google' | 'openai' | 'atomesus';
+  aiEndpoint?: string;
+  aiModel?: string;
   dbUrl?: string;
 }
 

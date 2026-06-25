@@ -3,9 +3,106 @@ import mammoth from "mammoth";
 import { Platform, SearchStrategy, LeadAnalysis, OutreachDraft, UserProfile, PositioningSuggestion, OutreachTone, OutreachLength, CvAnalysisResult } from "../types";
 
 let moduleApiKey = '';
+let moduleAiProvider = 'google';
+let moduleAiEndpoint = '';
+let moduleAiModel = '';
 
-export const setAiConfig = (key: string) => {
+export const setAiConfig = (key: string, provider: string = 'google', endpoint: string = '', model: string = '') => {
   moduleApiKey = key;
+  moduleAiProvider = provider;
+  moduleAiEndpoint = endpoint;
+  moduleAiModel = model;
+};
+
+// Open-AI Compatible Mock for Atomesus / OpenAI
+const getOpenAiCompatibleClient = (apiKey: string, provider: string, endpoint: string, customModel: string) => {
+  return {
+    models: {
+      generateContent: async (params: any) => {
+        let messages: any[] = [];
+        let promptText = "";
+        let imageUrls: string[] = [];
+        
+        if (typeof params.contents === 'string') {
+          promptText = params.contents;
+        } else if (params.contents.parts) {
+          for (const part of params.contents.parts) {
+            if (part.text) promptText += part.text + "\n";
+            if (part.inlineData) {
+               imageUrls.push(`data:${part.inlineData.mimeType};base64,${part.inlineData.data}`);
+            }
+          }
+        } else if (Array.isArray(params.contents)) {
+          for (const part of params.contents) {
+            if (part.text) promptText += part.text + "\n";
+            if (part.inlineData) {
+               imageUrls.push(`data:${part.inlineData.mimeType};base64,${part.inlineData.data}`);
+            }
+          }
+        }
+        
+        let content: any = promptText;
+        if (imageUrls.length > 0) {
+           content = [];
+           if (promptText) content.push({ type: "text", text: promptText });
+           for (const img of imageUrls) {
+              content.push({ type: "image_url", image_url: { url: img } });
+           }
+        }
+        
+        messages.push({ role: "user", content });
+        
+        const isJson = params.config?.responseMimeType === "application/json";
+        
+        let model = customModel || "cipher-8b";
+        if (provider === 'openai') model = customModel || "gpt-4o-mini";
+        
+        let url = endpoint || "https://api.atomesus.com/v1/chat/completions";
+        if (provider === 'openai') url = endpoint || "https://api.openai.com/v1/chat/completions";
+        if (!url.endsWith('/chat/completions')) {
+           url = url.replace(/\/$/, '') + '/chat/completions';
+        }
+
+        const body: any = {
+           model: model,
+           messages: messages
+        };
+
+        if (isJson) {
+           body.response_format = { type: "json_object" };
+           // Ensure prompt requests JSON
+           if (typeof messages[0].content === 'string') {
+               messages[0].content += "\n\nRespond ONLY with valid JSON.";
+           } else if (Array.isArray(messages[0].content)) {
+               messages[0].content.push({ type: "text", text: "Respond ONLY with valid JSON." });
+           }
+        }
+        
+        if (params.config?.maxOutputTokens) {
+           body.max_tokens = params.config.maxOutputTokens;
+        }
+
+        const res = await fetch(url, {
+           method: "POST",
+           headers: {
+             "Content-Type": "application/json",
+             "Authorization": `Bearer ${apiKey}`
+           },
+           body: JSON.stringify(body)
+        });
+
+        if (!res.ok) {
+           const errText = await res.text();
+           throw new Error(errText);
+        }
+        
+        const data = await res.json();
+        return {
+           text: data.choices[0].message.content
+        };
+      }
+    }
+  } as any;
 };
 
 // Helper to get client
@@ -28,6 +125,11 @@ const getAiClient = () => {
   if (!apiKey) {
     throw new Error("AI API Key is missing. Please configure it in the Admin Panel or set VITE_API_KEY.");
   }
+  
+  if (moduleAiProvider === 'atomesus' || moduleAiProvider === 'openai') {
+    return getOpenAiCompatibleClient(apiKey, moduleAiProvider, moduleAiEndpoint, moduleAiModel);
+  }
+  
   return new GoogleGenAI({ apiKey });
 };
 

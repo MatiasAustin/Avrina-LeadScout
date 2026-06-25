@@ -27,6 +27,8 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
     appLogo: '',
     aiApiKey: '',
     aiProvider: 'google',
+    aiEndpoint: '',
+    aiModel: '',
     dbUrl: ''
   });
   const [configSaved, setConfigSaved] = useState(false);
@@ -228,9 +230,16 @@ const AdminDashboard: React.FC<Props> = ({ onConfigUpdate }) => {
                     <select value={config.aiProvider} onChange={e => setConfig({...config, aiProvider: e.target.value as any})} className="px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl outline-none text-slate-900">
                       <option value="google" className="bg-slate-100 text-slate-900">Google Gemini</option>
                       <option value="openai" className="bg-slate-100 text-slate-900">OpenAI (GPT)</option>
+                      <option value="atomesus" className="bg-slate-100 text-slate-900">Atomesus AI</option>
                     </select>
                     <input type="password" value={config.aiApiKey || ''} onChange={e => setConfig({ ...config, aiApiKey: e.target.value })} className="flex-1 px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl outline-none text-slate-900" placeholder="AI API Key" />
                   </div>
+                  {config.aiProvider === 'atomesus' && (
+                    <div className="flex gap-2 mt-2">
+                      <input type="text" value={config.aiEndpoint || ''} onChange={e => setConfig({ ...config, aiEndpoint: e.target.value })} className="flex-1 px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl outline-none text-slate-900" placeholder="Custom Endpoint (e.g. https://api.atomesus.com)" />
+                      <input type="text" value={config.aiModel || ''} onChange={e => setConfig({ ...config, aiModel: e.target.value })} className="flex-1 px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl outline-none text-slate-900" placeholder="Model (e.g. cipher-8b)" />
+                    </div>
+                  )}
                   <p className="text-[10px] text-slate-400">Leave blank to use system default environment variables.</p>
                 </div>
               </div>
