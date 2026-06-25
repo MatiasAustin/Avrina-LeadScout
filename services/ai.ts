@@ -774,7 +774,7 @@ export const refineOutreachDraft = async (
 /**
  * AI Connection Tester
  */
-export const checkAiConnection = async (): Promise<boolean> => {
+export const checkAiConnection = async (): Promise<{ ok: boolean; error?: string }> => {
   try {
     const ai = getAiClient();
     // A fast, token-cheap ping
@@ -783,17 +783,17 @@ export const checkAiConnection = async (): Promise<boolean> => {
       contents: "ping",
       config: { maxOutputTokens: 1 }
     }));
-    return true;
+    return { ok: true };
   } catch (error: any) {
     const errMsg = error?.message || '';
     // A 429 Quota / Rate Limit error means the connection IS successfully reaching Google
     // and the API key is 100% valid. So the system IS connected, just out of quota.
     if (errMsg.includes('429') || errMsg.includes('Quota')) {
       console.warn("AI Connection established, but currently Rate Limited (429).");
-      return true;
+      return { ok: true };
     }
     console.warn("AI Connection Failed:", error);
-    return false;
+    return { ok: false, error: errMsg };
   }
 };
 

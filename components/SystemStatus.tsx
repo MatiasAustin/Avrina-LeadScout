@@ -6,6 +6,7 @@ import { RefreshCw, Database, BrainCircuit, Activity } from 'lucide-react';
 const SystemStatus: React.FC = () => {
   const [dbStatus, setDbStatus] = useState<'checking' | 'connected' | 'offline'>('checking');
   const [aiStatus, setAiStatus] = useState<'checking' | 'connected' | 'offline'>('checking');
+  const [aiError, setAiError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const checkConnections = async () => {
@@ -13,13 +14,14 @@ const SystemStatus: React.FC = () => {
     setDbStatus('checking');
     setAiStatus('checking');
 
-    const [dbOk, aiOk] = await Promise.all([
+    const [dbOk, aiResult] = await Promise.all([
       checkDbConnection(),
       checkAiConnection()
     ]);
 
     setDbStatus(dbOk ? 'connected' : 'offline');
-    setAiStatus(aiOk ? 'connected' : 'offline');
+    setAiStatus(aiResult.ok ? 'connected' : 'offline');
+    setAiError(aiResult.error || null);
     setIsRefreshing(false);
   };
 
@@ -72,14 +74,21 @@ const SystemStatus: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center justify-between bg-white px-2 py-1.5 rounded border border-slate-100">
-          <div className="flex items-center gap-2 text-slate-600 font-medium">
-            <BrainCircuit className="w-3.5 h-3.5" /> AI Model
+        <div className="flex flex-col bg-white px-2 py-1.5 rounded border border-slate-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-slate-600 font-medium">
+              <BrainCircuit className="w-3.5 h-3.5" /> AI Model
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-slate-500 capitalize">{aiStatus}</span>
+              <StatusDot status={aiStatus} />
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-slate-500 capitalize">{aiStatus}</span>
-            <StatusDot status={aiStatus} />
-          </div>
+          {aiStatus === 'offline' && aiError && (
+            <div className="mt-1.5 text-[9px] text-red-500 bg-red-50 px-2 py-1 rounded">
+              {aiError}
+            </div>
+          )}
         </div>
       </div>
     </div>

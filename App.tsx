@@ -230,10 +230,8 @@ const App: React.FC = () => {
     const appConfig = await getConfig();
     setConfig(appConfig);
     
-    // Set AI Config if available in DB
-    if (appConfig.aiApiKey) {
-      setAiConfig(appConfig.aiApiKey, appConfig.aiProvider, appConfig.aiEndpoint, appConfig.aiModel);
-    }
+    // Set AI Config from DB
+    setAiConfig(appConfig.aiApiKey || '', appConfig.aiProvider, appConfig.aiEndpoint, appConfig.aiModel);
 
     setLoadingAuth(false);
   };
@@ -272,9 +270,7 @@ const App: React.FC = () => {
 
   const handleConfigUpdate = (newConfig: AppConfig) => {
     setConfig(newConfig);
-    if (newConfig.aiApiKey) {
-       setAiConfig(newConfig.aiApiKey, newConfig.aiProvider, newConfig.aiEndpoint, newConfig.aiModel);
-    }
+    setAiConfig(newConfig.aiApiKey || '', newConfig.aiProvider, newConfig.aiEndpoint, newConfig.aiModel);
   };
 
   const openDonation = () => {
