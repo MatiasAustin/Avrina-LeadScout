@@ -59,6 +59,13 @@ const getOpenAiCompatibleClient = (apiKey: string, provider: string, endpoint: s
         
         let url = endpoint || "https://api.atomesus.com/v1/chat/completions";
         if (provider === 'openai') url = endpoint || "https://api.openai.com/v1/chat/completions";
+        
+        // Handle Atomesus CORS bug (Server returns 500 on OPTIONS preflight)
+        // By routing through our local Vite proxy when no custom endpoint is set
+        if (!endpoint && provider === 'atomesus' && typeof window !== 'undefined') {
+           url = "/api/atomesus/v1/chat/completions";
+        }
+        
         if (!url.endsWith('/chat/completions')) {
            url = url.replace(/\/$/, '') + '/chat/completions';
         }
