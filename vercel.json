@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/atomesus/(.*)",
+      "destination": "https://api.atomesus.com/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
