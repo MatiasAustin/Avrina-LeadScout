@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useLeads } from '../hooks/useLeads';
 import { getFriendlyErrorMessage, getTranslation } from '../utils/i18n';
+import { formatCurrency, formatCompactCurrency } from '../utils/currency';
 import HelpGuide from './HelpGuide';
 
 const getStatusColor = (status: LeadStatus) => {
@@ -105,7 +106,8 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
       status: LeadStatus.NEW,
       notes: newLeadNotes,
       painPoints: newLeadPainPoints,
-      targetEmail: newLeadTargetEmail
+      targetEmail: newLeadTargetEmail,
+      currency: localStorage.getItem('leadscout_currency') || 'IDR'
     };
     addLead(lead);
     setIsFormOpen(false);
@@ -253,10 +255,16 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
       acc[lead.status] = (acc[lead.status] || 0) + 1;
       return acc;
     }, {} as Record<LeadStatus, number>);
-    const totalValue = leads
-      .filter(l => l.status === LeadStatus.WON)
+
+    const wonLeads = leads.filter(l => l.status === LeadStatus.WON && (Number(l.value) || 0) > 0);
+    const savedCurrency = localStorage.getItem('leadscout_currency') || 'IDR';
+    const activeCurrency = wonLeads[0]?.currency || leads.find(l => l.currency)?.currency || savedCurrency;
+
+    const totalValue = wonLeads
+      .filter(l => (l.currency || activeCurrency).toUpperCase() === activeCurrency.toUpperCase())
       .reduce((sum, l) => sum + (Number(l.value) || 0), 0);
-    return { total, byStatus, totalValue };
+
+    return { total, byStatus, totalValue, activeCurrency };
   }, [leads]);
 
   const startRecording = async () => {
@@ -436,12 +444,15 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                     placeholder="Value" 
                   />
                   <select 
-                    value={lead.currency || 'USD'} 
-                    onChange={e => updateLead(lead.id, { currency: e.target.value })} 
+                    value={lead.currency || 'IDR'} 
+                    onChange={e => {
+                      updateLead(lead.id, { currency: e.target.value });
+                      localStorage.setItem('leadscout_currency', e.target.value);
+                    }} 
                     className="px-3 py-2.5 bg-transparent outline-none text-sm font-bold text-slate-800"
                   >
-                      <option value="USD">USD</option>
                       <option value="IDR">IDR</option>
+                      <option value="USD">USD</option>
                       <option value="EUR">EUR</option>
                   </select>
               </div>
@@ -637,17 +648,22 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
       </div>
 
       {leads.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
           {[
             { label: 'Total', val: stats.total, color: 'bg-slate-50 text-slate-800' },
             { label: 'Qualified', val: stats.byStatus[LeadStatus.QUALIFIED] || 0, color: 'bg-blue-50 text-blue-700' },
             { label: 'Contacted', val: stats.byStatus[LeadStatus.CONTACTED] || 0, color: 'bg-yellow-50 text-yellow-700' },
             { label: 'Won', val: stats.byStatus[LeadStatus.WON] || 0, color: 'bg-green-50 text-green-700' },
-            { label: 'Revenue', val: `$${stats.totalValue.toLocaleString()}`, color: 'bg-emerald-50 text-emerald-700' }
+            { 
+              label: `Revenue (${stats.activeCurrency})`, 
+              val: formatCompactCurrency(stats.totalValue, stats.activeCurrency), 
+              fullVal: formatCurrency(stats.totalValue, stats.activeCurrency),
+              color: 'bg-emerald-50 text-emerald-700' 
+            }
           ].map(s => (
-            <div key={s.label} className={`${s.color} p-4 rounded-xl border border-white shadow-sm`}>
-               <p className="text-[10px] font-bold uppercase opacity-60 mb-1">{s.label}</p>
-               <p className="text-2xl font-black">{s.val}</p>
+            <div key={s.label} className={`${s.color} p-4 rounded-xl border border-white shadow-sm min-w-0 overflow-hidden`}>
+               <p className="text-[10px] font-bold uppercase opacity-60 mb-1 truncate">{s.label}</p>
+               <p className="text-xl sm:text-2xl font-black truncate" title={(s as any).fullVal || String(s.val)}>{s.val}</p>
             </div>
           ))}
         </div>
@@ -755,7 +771,7 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                   >
                     <Copy className="w-3.5 h-3.5" />
                   </button>
-                  {lead.value > 0 && <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded ml-2">+{lead.currency} {lead.value}</span>}
+                  {lead.value > 0 && <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded ml-2">+{formatCurrency(lead.value, lead.currency || 'IDR')}</span>}
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[10px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded uppercase">{lead.platform}</span>
@@ -978,9 +994,16 @@ const LeadManager: React.FC<Props> = ({ userJob, userNiche, userBio, language, o
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="flex bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                       <input type="number" value={editingLead.value || 0} onChange={e => setEditingLead({...editingLead, value: Number(e.target.value)})} className="w-full px-4 py-2.5 bg-transparent outline-none border-r border-slate-200" placeholder="Value" />
-                      <select value={editingLead.currency || 'USD'} onChange={e => setEditingLead({...editingLead, currency: e.target.value})} className="px-3 py-2.5 bg-transparent outline-none text-sm font-bold">
-                          <option value="USD">USD</option>
+                      <select 
+                        value={editingLead.currency || 'IDR'} 
+                        onChange={e => {
+                          setEditingLead({...editingLead, currency: e.target.value});
+                          localStorage.setItem('leadscout_currency', e.target.value);
+                        }} 
+                        className="px-3 py-2.5 bg-transparent outline-none text-sm font-bold"
+                      >
                           <option value="IDR">IDR</option>
+                          <option value="USD">USD</option>
                           <option value="EUR">EUR</option>
                       </select>
                   </div>
