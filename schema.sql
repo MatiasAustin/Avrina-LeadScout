@@ -58,7 +58,17 @@ CREATE TABLE IF NOT EXISTS public.leads (
 );
 
 ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can manage own leads" ON public.leads FOR ALL USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can manage own leads" ON public.leads;
+DROP POLICY IF EXISTS "Users can view own leads" ON public.leads;
+DROP POLICY IF EXISTS "Users can insert own leads" ON public.leads;
+DROP POLICY IF EXISTS "Users can update own leads" ON public.leads;
+DROP POLICY IF EXISTS "Users can delete own leads" ON public.leads;
+DROP POLICY IF EXISTS "Admins can view all leads" ON public.leads;
+
+CREATE POLICY "Users can view own leads" ON public.leads FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own leads" ON public.leads FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own leads" ON public.leads FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own leads" ON public.leads FOR DELETE USING (auth.uid() = user_id);
 
 -- 4. Create App Config Table (Used by Admin Dashboard)
 CREATE TABLE IF NOT EXISTS public.app_config (

@@ -27,10 +27,17 @@ export const useLeads = () => {
   const [isLocalMode, setIsLocalMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const realtimeChannelRef = useRef<any>(null);
+  const currentUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     loadLeads();
+
+    const { data: { subscription: authListener } } = supabase.auth.onAuthStateChange(() => {
+      loadLeads();
+    });
+
     return () => {
+      authListener?.unsubscribe();
       if (realtimeChannelRef.current) {
         supabase.removeChannel(realtimeChannelRef.current);
       }
@@ -44,7 +51,6 @@ export const useLeads = () => {
     // Ini TIDAK bergantung pada getCurrentUser() yang bisa return 'local-admin' (fallback lokal)
     let isSupabaseLoggedIn = false;
     let supabaseUserId: string | null = null;
-    let supabaseUserRole: string = 'user';
 
     if (isSupabaseConfigured) {
       try {
@@ -52,18 +58,13 @@ export const useLeads = () => {
         if (sessionData.session?.user) {
           isSupabaseLoggedIn = true;
           supabaseUserId = sessionData.session.user.id;
-          // Ambil role dari tabel profiles untuk cek admin
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', supabaseUserId)
-            .single();
-          supabaseUserRole = profile?.role || 'user';
         }
       } catch (e) {
         console.warn('Session check failed:', e);
       }
     }
+
+    currentUserIdRef.current = supabaseUserId;
 
     // Gunakan Supabase HANYA kalau benar-benar login via Supabase
     const isGuest = !isSupabaseLoggedIn;
@@ -78,17 +79,18 @@ export const useLeads = () => {
     }
 
     // === SUPABASE MODE: ambil dari database ===
-    // Admin lihat SEMUA leads. User biasa lihat leads milik sendiri.
-    const isAdmin = supabaseUserRole === 'admin';
-    let query = supabase.from('leads').select('*').order('created_at', { ascending: false });
-
-    if (!isAdmin && supabaseUserId) {
-      // User biasa: filter hanya leads milik diri sendiri
-      query = query.eq('user_id', supabaseUserId);
+    // Setiap user (termasuk admin) HANYA melihat leads miliknya sendiri
+    if (!supabaseUserId) {
+      setLeads([]);
+      setLoading(false);
+      return;
     }
-    // Admin: tidak perlu filter user_id, bisa lihat semua
 
-    const { data, error } = await query;
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .eq('user_id', supabaseUserId)
+      .order('created_at', { ascending: false });
 
     if (!error && data) {
       setLeads(data.map(mapRow));
@@ -97,29 +99,36 @@ export const useLeads = () => {
       setLeads([]);
     }
 
-    // === REALTIME SUBSCRIPTION: sync antar device ===
+    // === REALTIME SUBSCRIPTION: sync antar device milik user ini ===
     // Hapus channel lama dulu kalau ada
     if (realtimeChannelRef.current) {
       supabase.removeChannel(realtimeChannelRef.current);
     }
 
     const channel = supabase
-      .channel('leads-realtime')
+      .channel(`leads-realtime-${supabaseUserId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'leads' },
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'leads',
+          filter: `user_id=eq.${supabaseUserId}`
+        },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            const newLead = mapRow(payload.new);
-            // Kalau user biasa, hanya tampilkan leads miliknya
-            if (!isAdmin && payload.new.user_id !== supabaseUserId) return;
-            setLeads(prev => {
-              // Hindari duplikat
-              if (prev.some(l => l.id === newLead.id)) return prev;
-              return [newLead, ...prev];
-            });
+            if (payload.new && (payload.new as any).user_id === supabaseUserId) {
+              const newLead = mapRow(payload.new);
+              setLeads(prev => {
+                // Hindari duplikat
+                if (prev.some(l => l.id === newLead.id)) return prev;
+                return [newLead, ...prev];
+              });
+            }
           } else if (payload.eventType === 'UPDATE') {
-            setLeads(prev => prev.map(l => l.id === payload.new.id ? mapRow(payload.new) : l));
+            if (payload.new && (payload.new as any).user_id === supabaseUserId) {
+              setLeads(prev => prev.map(l => l.id === payload.new.id ? mapRow(payload.new) : l));
+            }
           } else if (payload.eventType === 'DELETE') {
             setLeads(prev => prev.filter(l => l.id !== payload.old.id));
           }
@@ -191,6 +200,10 @@ export const useLeads = () => {
       const updated = currentLeads.map((l: Lead) => l.id === id ? { ...l, ...updates } : l);
       localStorage.setItem('leadscout_leads_guest', JSON.stringify(updated));
     } else {
+      const { data: userData } = await supabase.auth.getUser();
+      const currentUserId = userData.user?.id || currentUserIdRef.current;
+      if (!currentUserId) return;
+
       const dbUpdates: any = {};
       if (updates.status !== undefined)    dbUpdates.status = updates.status;
       if (updates.analysis !== undefined)  dbUpdates.analysis = updates.analysis;
@@ -217,7 +230,7 @@ export const useLeads = () => {
         };
       }
 
-      const { error } = await supabase.from('leads').update(dbUpdates).eq('id', id);
+      const { error } = await supabase.from('leads').update(dbUpdates).eq('id', id).eq('user_id', currentUserId);
       if (error) {
         console.error('Update failed:', error);
         alert('Gagal mengupdate lead: ' + (error?.message || JSON.stringify(error)));
@@ -234,7 +247,11 @@ export const useLeads = () => {
       const filtered = currentLeads.filter((l: Lead) => l.id !== id);
       localStorage.setItem('leadscout_leads_guest', JSON.stringify(filtered));
     } else {
-      const { error } = await supabase.from('leads').delete().eq('id', id);
+      const { data: userData } = await supabase.auth.getUser();
+      const currentUserId = userData.user?.id || currentUserIdRef.current;
+      if (!currentUserId) return;
+
+      const { error } = await supabase.from('leads').delete().eq('id', id).eq('user_id', currentUserId);
       if (error) console.error('Delete failed:', error);
     }
   };

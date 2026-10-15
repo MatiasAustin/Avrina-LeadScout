@@ -22,6 +22,20 @@ ADD COLUMN IF NOT EXISTS deal_type text,
 ADD COLUMN IF NOT EXISTS analysis jsonb,
 ADD COLUMN IF NOT EXISTS outreach jsonb;
 
+-- Strict User Isolation: Row Level Security for Leads
+ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can manage own leads" ON public.leads;
+DROP POLICY IF EXISTS "Users can view own leads" ON public.leads;
+DROP POLICY IF EXISTS "Users can insert own leads" ON public.leads;
+DROP POLICY IF EXISTS "Users can update own leads" ON public.leads;
+DROP POLICY IF EXISTS "Users can delete own leads" ON public.leads;
+DROP POLICY IF EXISTS "Admins can view all leads" ON public.leads;
+
+CREATE POLICY "Users can view own leads" ON public.leads FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own leads" ON public.leads FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own leads" ON public.leads FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own leads" ON public.leads FOR DELETE USING (auth.uid() = user_id);
+
 -- 3. Update profiles table
 ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS full_name text,
